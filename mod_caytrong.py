@@ -90,43 +90,43 @@ def process(file, conn):
                 if idx == 0:
                     mota2 = addr
                     fdate = extract_date(df.to_string())
-                else:
-                    mota1 = addr
-                    col2 = get_col(df)
-                    df = df.reindex(
-                        ["Unnamed: 1", col2], axis="columns")
-                    df = df.loc[get_first_row(df['Unnamed: 1']):, :]
+                    continue
+                mota1 = addr
+                col2 = get_col(df)
+                df = df.reindex(
+                    ["Unnamed: 1", col2], axis="columns")
+                df = df.loc[get_first_row(df['Unnamed: 1']):, :]
 
-                    df.dropna(subset=["Unnamed: 1"], inplace=True)
-                    df.reset_index(inplace=True, drop=True)
-                    df['Unnamed: 1'].replace(rep, regex=True, inplace=True)
-                    df[col2] = df[col2].astype(str)
-                    df[col2].replace(
-                        {r'[A-Za-z]+': '', r'\s+': ''}, regex=True, inplace=True)
-                    df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ')]
-                    df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)
-                    df[col2] = pd.to_numeric(df[col2], errors='coerce')
-                    df['nhom'] = df['Unnamed: 1'].where(df['Unnamed: 1'].isin(
-                        keyword) & ~df['dup'], np.nan).fillna(method='ffill')
-                    df['chuyenmuc'] = df['Unnamed: 1'].where(
-                        ~df['dup']).fillna(method='ffill')
-                    df = df[~df['chuyenmuc'].astype(
-                        str).str.contains('Cây Rau, Màu', na=False)]
-                    df = df[df['dup'] & df[col2].astype(float).gt(0)]
-                    df[col2] = df[col2].round(2).apply(str)
-                    df['thuoctinh'] = '"'+df['chuyenmuc'] + '":'+df[col2]
-                    dfp = df.groupby(["nhom", "Unnamed: 1"]).agg(
-                        {"thuoctinh": lambda x: ",".join(x)})
-                    for nhom, chuyenmuc, thuoctinh in dfp.to_records():
-                        count += 1
-                        f.write(json.dumps({
-                            "nhom": nhom,
-                            "chuyenmuc": str(chuyenmuc),
-                            "thuoctinh": json.loads("{"+str(thuoctinh)+"}"),
+                df = df.dropna(subset=["Unnamed: 1"]
+                               ).reset_index(drop=True)
+                df['Unnamed: 1'] = df['Unnamed: 1'].replace(
+                    rep, regex=True)
+                df[col2] = df[col2].astype(str).replace(
+                    {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
+                df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ')]
+                df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)
+                df[col2] = pd.to_numeric(df[col2], errors='coerce')
+                df['nhom'] = df['Unnamed: 1'].where(df['Unnamed: 1'].isin(
+                    keyword) & ~df['dup'], np.nan).fillna(method='ffill')
+                df['chuyenmuc'] = df['Unnamed: 1'].where(
+                    ~df['dup']).fillna(method='ffill')
+                df = df[~df['chuyenmuc'].astype(
+                    str).str.contains('Cây Rau, Màu', na=False)]
+                df = df[df['dup'] & df[col2].astype(float).gt(0)]
+                df[col2] = df[col2].round(2).apply(str)
+                df['thuoctinh'] = '"'+df['chuyenmuc'] + '":'+df[col2]
+                dfp = df.groupby(["nhom", "Unnamed: 1"]).agg(
+                    {"thuoctinh": lambda x: ",".join(x)})
+                for nhom, chuyenmuc, thuoctinh in dfp.to_records():
+                    count += 1
+                    f.write(json.dumps({
+                        "nhom": nhom,
+                        "chuyenmuc": str(chuyenmuc),
+                        "thuoctinh": json.loads("{"+str(thuoctinh)+"}"),
                             "fdate": datetime.strptime(fdate, "%d-%m-%Y").isoformat(),
                             "mota1": mota1,
                             "mota2": mota2
-                        }, ensure_ascii=False)+"\n")
+                            }, ensure_ascii=False)+"\n")
             except:
                 print("File {f} bị lỗi ở sheet {n}".format(f=file, n=name))
                 continue
@@ -136,7 +136,7 @@ def process(file, conn):
             cur = conn.cursor()
             cur.copy_from(f, table_name)
             conn.commit()
-        else:
+        elif config.verbose:
             print(f.read())
     with open(tmp_file, "r", encoding="utf8") as infile, open(data_file, "a", encoding="utf8") as outfile:
         outfile.write(infile.read())

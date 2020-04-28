@@ -33,10 +33,8 @@ def process(file, conn):
             new = df["Unnamed: 7"].str.split("- ", expand=True)
             df["mdcao1"] = new[0]
             df["mdcao2"] = new[1]
-            df = df.iloc[11:, 1:]
-            df = df.reset_index(drop=True)
-            df = df.drop(columns=["Unnamed: 5", "Unnamed: 6", "Unnamed: 7", "Unnamed: 10", "Unnamed: 14",
-                                  "Unnamed: 16", "Unnamed: 18", "Unnamed: 20", "Unnamed: 21"])
+            df = df.iloc[11:, 1:].reset_index(drop=True).drop(columns=["Unnamed: 5", "Unnamed: 6", "Unnamed: 7", "Unnamed: 10", "Unnamed: 14",
+                                                                       "Unnamed: 16", "Unnamed: 18", "Unnamed: 20", "Unnamed: 21"])
 
             df.columns = ["loai", "nhom", "svgh", "gdst", "dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong",
                           "dtmattrang", "dtsokytruoc", "dtphongtru", "phanbo", "fdate", "tdate", "mdpb1", "mdpb2", "mdcao1", "mdcao2"]
@@ -45,7 +43,7 @@ def process(file, conn):
                 df.loc[:, "svgh"].str.startswith("Nhóm cây:")).str.replace("Nhóm cây: ", "")
             df.loc[:, ["loai", "nhom"]] = df.loc[:, [
                 "loai", "nhom"]].fillna(method="ffill")
-            df.dropna(subset=["gdst"], inplace=True)
+            df = df.dropna(subset=["gdst"])
             df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong", "dtmattrang", "dtsokytruoc", "dtphongtru"]] = df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong",
                                                                                                                                     "dtmattrang", "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '') if isinstance(x, str) else x)
         except:
@@ -60,7 +58,7 @@ def process(file, conn):
                 cur.copy_expert(
                     "COPY {t} FROM STDIN WITH CSV HEADER".format(t=table_name), f)
                 conn.commit()
-            else:
+            elif config.verbose:
                 print(f.read())
         with open(tmp_file, "r", encoding="utf8") as infile, open(data_file, "a", encoding="utf8") as outfile:
             next(infile)
