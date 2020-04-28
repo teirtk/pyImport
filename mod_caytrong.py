@@ -79,23 +79,20 @@ def process(file, conn):
     table_name = "caytrong"
     tmp_file = os.path.join(os.path.dirname(file), "tmp")
     data_file = os.path.join(os.path.dirname(file), "data")
-    with open(tmp_file, "w+", encoding="utf8") as f:
-        with pd.ExcelFile(file) as xls:
-            count = 0
-            for idx, name in enumerate(xls.sheet_names):
-                try:
-                    if name.startswith("Sheet") or name.startswith("Compa"):
-                        continue
-                    df = pd.read_excel(xls, sheet_name=name,
-                                       encoding='utf-16le')
-                    addr = fix_addr(name)
-                    if idx == 0:
-                        mota2 = addr
-                        fdate = extract_date(df.to_string())
-                    else:
-                        mota1 = addr
-                        col2 = get_col(df)
-
+    with open(tmp_file, "w+", encoding="utf8") as f, pd.ExcelFile(file) as xls:
+        count = 0
+        for idx, name in enumerate(xls.sheet_names):
+            try:
+                if name.startswith("Sheet") or name.startswith("Compa"):
+                    continue
+                df = pd.read_excel(xls, sheet_name=name, encoding='utf-16le')
+                addr = fix_addr(name)
+                if idx == 0:
+                    mota2 = addr
+                    fdate = extract_date(df.to_string())
+                else:
+                    mota1 = addr
+                    col2 = get_col(df)
                     df = df.reindex(
                         ["Unnamed: 1", col2], axis="columns")
                     df = df.loc[get_first_row(df['Unnamed: 1']):, :]
@@ -117,8 +114,7 @@ def process(file, conn):
                         str).str.contains('Cây Rau, Màu', na=False)]
                     df = df[df['dup'] & df[col2].astype(float).gt(0)]
                     df[col2] = df[col2].round(2).apply(str)
-                    df['thuoctinh'] = '"'+df['chuyenmuc'] + \
-                        '":'+df[col2]
+                    df['thuoctinh'] = '"'+df['chuyenmuc'] + '":'+df[col2]
                     dfp = df.groupby(["nhom", "Unnamed: 1"]).agg(
                         {"thuoctinh": lambda x: ",".join(x)})
                     for nhom, chuyenmuc, thuoctinh in dfp.to_records():
@@ -131,10 +127,9 @@ def process(file, conn):
                             "mota1": mota1,
                             "mota2": mota2
                         }, ensure_ascii=False)+"\n")
-                except:
-                    print("File {f} bị lỗi ở sheet {n}".format(
-                        f=file, n=name))
-                    continue
+            except:
+                print("File {f} bị lỗi ở sheet {n}".format(f=file, n=name))
+                continue
 
     with open(data_file, "r", encoding="utf8") as f:
         if config.withdb:
