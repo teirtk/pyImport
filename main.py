@@ -64,6 +64,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--withdb", help="Ghi dữ liệu vào postgres, edit thông số kết nối trong config.py", action="store_true")
+    parser.add_argument(
+        "--verbose", help="In ra màn hình dữ liệu extract được", action="store_true")
     args = parser.parse_args()
     config.withdb = args.withdb
     if config.withdb:
