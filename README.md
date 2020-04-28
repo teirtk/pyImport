@@ -13,5 +13,6 @@ Hướng dẫn
     Copy file excel vào thư mục con trong Pandas_in để import
     caytrong tương ứng file excel báo cáo diện tích cây trồng
     hoặc dichbenh
+    file data trong thư mục con là dữ liệu extract ra được
         python main.py -h 
     Để xem thêm tùy chọn
