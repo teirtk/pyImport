@@ -7,13 +7,19 @@ import re
 import psycopg2
 import config
 import argparse
+import os
 
 conn = None
+
+
 class Watcher:
 
     def __init__(self, dir="Pandas_In"):
         self.observer = Observer()
         self.DIRECTORY_TO_WATCH = dir
+        for f in ([os.path.join(f.path, "data") for f in os.scandir(dir) if f.is_dir()]):
+            with open(f, 'w'):
+                pass
 
     def run(self):
         print("Watching directory: ", self.DIRECTORY_TO_WATCH)

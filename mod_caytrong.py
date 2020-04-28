@@ -77,21 +77,25 @@ rep = {"Cây Lúa": "Lúa",
 
 def process(file, conn):
     table_name = "caytrong"
+    tmp_file = os.path.join(os.path.dirname(file), "tmp")
     data_file = os.path.join(os.path.dirname(file), "data")
-    with open(data_file, "w+", encoding="utf8") as f:
+    with open(tmp_file, "w+", encoding="utf8") as f:
         with pd.ExcelFile(file) as xls:
             count = 0
             for idx, name in enumerate(xls.sheet_names):
-                if not name.startswith("Sheet") and not name.startswith("Compa"):
+                try:
+                    if name.startswith("Sheet") or name.startswith("Compa"):
+                        continue
                     df = pd.read_excel(xls, sheet_name=name,
                                        encoding='utf-16le')
                     addr = fix_addr(name)
-                if idx == 0:
-                    mota2 = addr
-                    fdate = extract_date(df.to_string())
-                else:
-                    mota1 = addr
-                    col2 = get_col(df)
+                    if idx == 0:
+                        mota2 = addr
+                        fdate = extract_date(df.to_string())
+                    else:
+                        mota1 = addr
+                        col2 = get_col(df)
+
                     df = df.reindex(
                         ["Unnamed: 1", col2], axis="columns")
                     df = df.loc[get_first_row(df['Unnamed: 1']):, :]
@@ -123,17 +127,22 @@ def process(file, conn):
                             "nhom": nhom,
                             "chuyenmuc": str(chuyenmuc),
                             "thuoctinh": json.loads("{"+str(thuoctinh)+"}"),
-                                "fdate": datetime.strptime(fdate, "%d-%m-%Y").isoformat(),
-                                "mota1": mota1,
-                                "mota2": mota2
-                                }, ensure_ascii=False)+"\n")
+                            "fdate": datetime.strptime(fdate, "%d-%m-%Y").isoformat(),
+                            "mota1": mota1,
+                            "mota2": mota2
+                        }, ensure_ascii=False)+"\n")
+                except:
+                    print("File {f} bị lỗi ở sheet {n}".format(
+                        f=file, n=name))
+                    continue
 
-    if config.withdb:
-        cur = conn.cursor()
-        with open(data_file, "r+", encoding="utf8") as f:
+    with open(data_file, "r", encoding="utf8") as f:
+        if config.withdb:
+            cur = conn.cursor()
             cur.copy_from(f, table_name)
-        conn.commit()
-    else:
-        with open(data_file, "r+", encoding="utf8") as f:
+            conn.commit()
+        else:
             print(f.read())
+    with open(tmp_file, "r", encoding="utf8") as infile, open(data_file, "a", encoding="utf8") as outfile:
+        outfile.write(infile.read())
     print("{f}: {n} rows added \n".format(f=file, n=count))
