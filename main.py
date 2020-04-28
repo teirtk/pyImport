@@ -5,17 +5,18 @@ import importlib
 import pkgutil
 import re
 import psycopg2
-discovered_plugins = []
-cur = None
+import config
+import argparse
 
-
+conn = None
 class Watcher:
 
-    def __init__(self, dir='Pandas_In'):
+    def __init__(self, dir="Pandas_In"):
         self.observer = Observer()
         self.DIRECTORY_TO_WATCH = dir
 
     def run(self):
+        print("Watching directory: ", self.DIRECTORY_TO_WATCH)
         event_handler = Handler()
         self.observer.schedule(
             event_handler, self.DIRECTORY_TO_WATCH, recursive=True)
@@ -25,7 +26,7 @@ class Watcher:
                 time.sleep(5)
         except:
             self.observer.stop()
-            print('Error')
+            print("Error")
 
         self.observer.join()
 
@@ -34,26 +35,38 @@ class Handler(FileSystemEventHandler):
 
     @staticmethod
     def on_any_event(event):
+        global conn
         if event.is_directory:
             return None
 
-        elif event.event_type == 'created':
+        elif event.event_type == "created":
             # Take any action here when a file is first created.
-            match = re.search(r'\\(.+)\\', event.src_path)
-            if match:
-                mod_name = 'mod_'+match.group(1).lower()
-                discovered_plugins[mod_name].process(event.src_path, conn,'dichbenh')
+            if event.src_path.endswith(".xls") or event.src_path.endswith(".xlsx"):
+                match = re.search(r"\\(.+)\\", event.src_path)
+                if match:
+                    mod_name = "mod_"+match.group(1).lower()
+                    plugins[mod_name].process(event.src_path, conn)
 
 
-if __name__ == '__main__':
-    discovered_plugins = {
+if __name__ == "__main__":
+    plugins = {
         name: importlib.import_module(name)
         for finder, name, ispkg
         in pkgutil.iter_modules()
-        if name.startswith('mod_')
+        if name.startswith("mod_")
     }
-    conn = psycopg2.connect(database='postgres', user='postgres',
-                            password='b7ec6b08dc1f4f3383663c0ecdf5dda7', host='localhost', port='5432')
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--withdb", help="Ghi dữ liệu vào postgres, edit thông số kết nối trong config.py", action="store_true")
+    args = parser.parse_args()
+    config.withdb = args.withdb
+    if config.withdb:
+        conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
+                                password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+        cur = conn.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS caytrong (data jsonb);")
+        cur.execute("CREATE TABLE IF NOT EXISTS dichbenh (loai character varying(20),nhom character varying(20),svgh character varying(50),gdst character varying(100),dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(100),fdate date NOT NULL,tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);")
     w = Watcher()
     w.run()
-    conn.close()
+    if config.withdb:
+        conn.close()

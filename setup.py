@@ -9,5 +9,5 @@ setup(
     author='Kiet',
     author_email='',
     description='',
-    install_requires=['numpy', 'pandas', 'xlrd','psycopg2']
+    install_requires=['numpy', 'pandas', 'xlrd','psycopg2','watchdog']
 )
