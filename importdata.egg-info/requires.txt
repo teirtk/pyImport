@@ -1,0 +1,6 @@
+numpy
+pandas
+xlrd
+psycopg2-binary
+watchdog
+flask

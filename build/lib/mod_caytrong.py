@@ -9,8 +9,6 @@ import config
 
 # Lấy ngày ra ở sheet đầu tiên
 
-SQL = "CREATE TABLE IF NOT EXISTS caytrong (data jsonb);"
-
 
 def extract_date(s):
     r1 = re.findall(r"gày ([0-9]+) tháng ([0-9]+) năm ([0-9]+)", s)
@@ -79,9 +77,9 @@ rep = {"Cây Lúa": "Lúa",
 
 def process(file, conn):
     table_name = "caytrong"
-    basename = os.path.basename(file)
+    tmp_file = os.path.join(os.path.dirname(file), "tmp")
     data_file = os.path.join(os.path.dirname(file), "data")
-    with open(data_file, "w+", encoding="utf8") as f, pd.ExcelFile(file) as xls:
+    with open(tmp_file, "w+", encoding="utf8") as f, pd.ExcelFile(file) as xls:
         count = 0
         for idx, name in enumerate(xls.sheet_names):
             try:
@@ -130,7 +128,8 @@ def process(file, conn):
                             "mota2": mota2
                             }, ensure_ascii=False)+"\n")
             except:
-                return "File {f} bị lỗi ở sheet {n}".format(f=basename, n=name)
+                print("File {f} bị lỗi ở sheet {n}".format(f=file, n=name))
+                continue
 
     with open(data_file, "r", encoding="utf8") as f:
         if config.withdb:
@@ -141,4 +140,4 @@ def process(file, conn):
             print(f.read())
     with open(tmp_file, "r", encoding="utf8") as infile, open(data_file, "a", encoding="utf8") as outfile:
         outfile.write(infile.read())
-    return "{f}: {n} rows added \n".format(f=basename, n=count)
+    print("{f}: {n} rows added \n".format(f=file, n=count))

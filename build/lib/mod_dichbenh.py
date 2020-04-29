@@ -1,3 +1,4 @@
+import json
 import re
 import os
 import numpy as np
@@ -5,8 +6,6 @@ import pandas as pd
 from pandas import ExcelFile
 from datetime import date
 import config
-
-SQL = "CREATE TABLE IF NOT EXISTS dichbenh (loai character varying(20),nhom character varying(20),svgh character varying(50),gdst character varying(100),dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(100),fdate date NOT NULL,tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);"
 
 
 def convert(s, getdate):
@@ -48,7 +47,7 @@ def process(file, conn):
             df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong", "dtmattrang", "dtsokytruoc", "dtphongtru"]] = df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong",
                                                                                                                                     "dtmattrang", "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '') if isinstance(x, str) else x)
         except:
-            print("{f} bị lỗi".format(f=os.path.basename(file)))
+            print("File {f} bị lỗi".format(f=file))
             return
         tmp_file = os.path.join(os.path.dirname(file), "tmp")
         data_file = os.path.join(os.path.dirname(file), "data")
@@ -65,4 +64,4 @@ def process(file, conn):
             next(infile)
             for line in infile:
                 outfile.write(line)
-        return "{f}: {n} dòng được thêm \n".format(f=file, n=len(df.index)+1)
+        print("{f}: {n} rows added \n".format(f=file, n=len(df.index)+1))

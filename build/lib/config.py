@@ -7,4 +7,3 @@ db = {
 }
 withdb = False
 verbose = False
-conn = None
