@@ -6,7 +6,7 @@ import os
 from pandas import ExcelFile
 from datetime import datetime
 import config
-
+import tempfile
 # Lấy ngày ra ở sheet đầu tiên
 
 SQL = "CREATE TABLE IF NOT EXISTS caytrong (data jsonb);"
@@ -80,7 +80,7 @@ rep = {"Cây Lúa": "Lúa",
 def process(file, conn):
     table_name = "caytrong"
     basename = os.path.basename(file)
-    data_file = os.path.join(os.path.dirname(file), "data")
+    data_file = tempfile.NamedTemporaryFile()
     with open(data_file, "w+", encoding="utf8") as f, pd.ExcelFile(file) as xls:
         count = 0
         for idx, name in enumerate(xls.sheet_names):
@@ -133,12 +133,7 @@ def process(file, conn):
                 return "File {f} bị lỗi ở sheet {n}".format(f=basename, n=name)
 
     with open(data_file, "r", encoding="utf8") as f:
-        if config.withdb:
-            cur = conn.cursor()
-            cur.copy_from(f, table_name)
-            conn.commit()
-        elif config.verbose:
-            print(f.read())
-    with open(tmp_file, "r", encoding="utf8") as infile, open(data_file, "a", encoding="utf8") as outfile:
-        outfile.write(infile.read())
+        cur = conn.cursor()
+        cur.copy_from(f, table_name)
+        conn.commit()
     return "{f}: {n} rows added \n".format(f=basename, n=count)

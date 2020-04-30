@@ -5,6 +5,8 @@ import pandas as pd
 from pandas import ExcelFile
 from datetime import date
 import config
+import tempfile
+import io
 
 SQL = "CREATE TABLE IF NOT EXISTS dichbenh (loai character varying(20),nhom character varying(20),svgh character varying(50),gdst character varying(100),dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(100),fdate date NOT NULL,tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);"
 
@@ -22,6 +24,7 @@ def convert(s, getdate):
 
 def process(file, conn):
     table_name = "dichbenh"
+    basename = os.path.basename(file)
     with pd.ExcelFile(file) as xls:
         try:
             df = pd.read_excel(xls)
@@ -39,7 +42,8 @@ def process(file, conn):
 
             df.columns = ["loai", "nhom", "svgh", "gdst", "dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong",
                           "dtmattrang", "dtsokytruoc", "dtphongtru", "phanbo", "fdate", "tdate", "mdpb1", "mdpb2", "mdcao1", "mdcao2"]
-
+            df.loc[:, ["loai", "nhom", "svgh", "gdst"]] = df.loc[:, [
+                "loai", "nhom", "svgh", "gdst"]].applymap(lambda x: x.strip() if isinstance(x, str) else x)
             df.loc[:, "nhom"] = df.loc[:, "svgh"].where(
                 df.loc[:, "svgh"].str.startswith("Nhóm cây:")).str.replace("Nhóm cây: ", "")
             df.loc[:, ["loai", "nhom"]] = df.loc[:, [
@@ -48,21 +52,11 @@ def process(file, conn):
             df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong", "dtmattrang", "dtsokytruoc", "dtphongtru"]] = df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong",
                                                                                                                                     "dtmattrang", "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '') if isinstance(x, str) else x)
         except:
-            print("{f} bị lỗi".format(f=os.path.basename(file)))
-            return
-        tmp_file = os.path.join(os.path.dirname(file), "tmp")
-        data_file = os.path.join(os.path.dirname(file), "data")
-        df.to_csv(tmp_file, index=False)
-        with open(tmp_file, "r", encoding="utf8") as f:
-            if config.withdb:
-                cur = conn.cursor()
-                cur.copy_expert(
-                    "COPY {t} FROM STDIN WITH CSV HEADER".format(t=table_name), f)
-                conn.commit()
-            elif config.verbose:
-                print(f.read())
-        with open(tmp_file, "r", encoding="utf8") as infile, open(data_file, "a", encoding="utf8") as outfile:
-            next(infile)
-            for line in infile:
-                outfile.write(line)
-        return "{f}: {n} dòng được thêm \n".format(f=file, n=len(df.index)+1)
+            return "{f} bị lỗi".format(basename)
+        buffer = io.StringIO()
+        df.to_csv(buffer, index=False)
+        #cur = conn.cursor()
+        #cur.copy_expert(
+        #    "COPY {t} FROM STDIN WITH CSV HEADER".format(t=table_name), buffer)
+        #print(buffer.getvalue())
+        return "{f}: {n} dòng được thêm \n".format(f=basename, n=len(df.index)+1)
