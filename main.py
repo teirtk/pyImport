@@ -23,10 +23,8 @@ def __init__():
     except FileExistsError:
         pass
     for f in glob.glob(app.config['UPLOAD_FOLDER']+'/*'):
-        try:
+        if os.path.isfile(f):
             os.unlink(f)
-        except FileExistsError:
-            pass
 
     conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
                             password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
