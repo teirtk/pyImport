@@ -10,7 +10,7 @@ import glob
 import io
 
 
-ALLOWED_EXTENSIONS = set('.xls', '.xlsx')
+ALLOWED_EXTENSIONS = {'.xls', '.xlsx'}
 app = Flask(__name__)
 app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = '/tmp'
