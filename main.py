@@ -18,8 +18,20 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
 def __init__():
+    try:
+        os.makedirs(UPLOAD_FOLDER)
+    except FileExistsError:
+        pass
     for f in glob.glob(UPLOAD_FOLDER+'/*'):
         os.unlink(f)
+
+    conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
+                            password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+    cur = conn.cursor()
+    for id in plugins:
+        cur.execute(plugins[id].SQL)
+    conn.commit()
+    conn.close()
 
 
 @app.route('/')
@@ -38,19 +50,13 @@ def upload_file(modname):
         return plugins[modname].process(filename)
     return "Tập tin sai định dạng\n"
 
+
 if __name__ == "__main__":
-    __init__()
     plugins = {
         name: importlib.import_module(name)
         for finder, name, ispkg
         in pkgutil.iter_modules()
         if name.startswith("mod_")
     }
-    conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
-                            password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
-    cur = conn.cursor()
-    for id in plugins:
-        cur.execute(plugins[id].SQL)
-    conn.commit()
-    conn.close()
+    __init__()
     serve(app, host='0.0.0.0', port=5000)
