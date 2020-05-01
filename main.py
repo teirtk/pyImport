@@ -59,4 +59,5 @@ if __name__ == "__main__":
         if name.startswith("mod_")
     }
     __init__()
-    serve(app, host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    serve(app, host='0.0.0.0', port=port)
