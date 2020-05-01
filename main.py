@@ -10,7 +10,7 @@ import glob
 import io
 
 UPLOAD_FOLDER = 'uploads'
-
+ALLOWED_EXTENSIONS = {'.xls', '.xlsx'}
 app = Flask(__name__)
 app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -29,15 +29,18 @@ def upload_form():
 
 @app.route('/upload/<modname>', methods=['POST'])
 def upload_file(modname):
-    f = request.files['file']
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
-    f.save(filename)
-    return plugins[modname].process(filename)
 
+    f = request.files['file']
+    _, file_extension = os.path.splitext(f.filename)
+    if file_extension.lower() in ALLOWED_EXTENSIONS:
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
+        f.save(filename)
+        return plugins[modname].process(filename)
+    return "Tập tin sai định dạng\n"
 
 if __name__ == "__main__":
     __init__()
-    plugins = { 
+    plugins = {
         name: importlib.import_module(name)
         for finder, name, ispkg
         in pkgutil.iter_modules()
@@ -51,4 +54,3 @@ if __name__ == "__main__":
     conn.commit()
     conn.close()
     serve(app, host='0.0.0.0', port=5000)
-   
