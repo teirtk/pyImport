@@ -79,7 +79,7 @@ rep = {"Cây Lúa": "Lúa",
        r"^Khác \(.*": "Khác"}
 
 
-def process(file):
+def process(file,postgreSQL_pool):
     basename = os.path.basename(file)
     buffer = io.StringIO()
     with pd.ExcelFile(file) as xls:
@@ -134,11 +134,10 @@ def process(file):
                 return "File {f} bị lỗi ở sheet {n}".format(f=basename, n=name)
 
     buffer.seek(0)
-    conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
-                            password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+    conn = postgreSQL_pool.getconn()
     with conn.cursor() as cur:
         cur.copy_from(buffer, TABLE_NAME)
     conn.commit()
-    conn.close()
+    postgreSQL_pool.putconn(conn)
     buffer.close()
     return "{f}: {n} dòng được thêm \n".format(f=basename, n=count)

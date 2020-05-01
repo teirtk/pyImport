@@ -4,10 +4,11 @@ import pkgutil
 import psycopg2
 import config
 import os
-from flask import Flask, render_template, request
-from waitress import serve
 import glob
 import io
+from flask import Flask, render_template, request
+from waitress import serve
+from psycopg2 import pool
 
 
 ALLOWED_EXTENSIONS = {'.xls', '.xlsx'}
@@ -15,6 +16,9 @@ app = Flask(__name__)
 app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+postgreSQL_pool = psycopg2.pool.ThreadedConnectionPool(1, 10, database=config.db["db"], user=config.db["user"],
+                                                     password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
 
 
 def __init__():
@@ -26,13 +30,12 @@ def __init__():
         if os.path.isfile(f):
             os.unlink(f)
 
-    conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
-                            password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+    conn = postgreSQL_pool.getconn()
     cur = conn.cursor()
     for id in plugins:
         cur.execute(plugins[id].SQL)
     conn.commit()
-    conn.close()
+    postgreSQL_pool.putconn(conn)
 
 
 @app.route('/')
@@ -48,7 +51,7 @@ def upload_file(modname):
     if file_extension.lower() in ALLOWED_EXTENSIONS:
         filename = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
         f.save(filename)
-        return plugins[modname].process(filename)
+        return plugins[modname].process(filename, postgreSQL_pool)
     return "Tập tin sai định dạng\n"
 
 
@@ -62,3 +65,5 @@ if __name__ == "__main__":
     __init__()
     port = int(os.environ.get("PORT", 5000))
     serve(app, host='0.0.0.0', port=port)
+    if (postgreSQL_pool):
+        postgreSQL_pool.closeall

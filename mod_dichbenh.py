@@ -1,13 +1,14 @@
 import re
 import os
-import numpy as np
-import pandas as pd
-from pandas import ExcelFile
-from datetime import date
 import config
 import tempfile
 import io
 import psycopg2
+import numpy as np
+import pandas as pd
+from pandas import ExcelFile
+from datetime import date
+from psycopg2 import pool
 
 SQL = "CREATE TABLE IF NOT EXISTS dichbenh (loai character varying(20),nhom character varying(20),svgh character varying(50),gdst character varying(100),dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(100),fdate date NOT NULL,tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);"
 TABLE_NAME = "dichbenh"
@@ -24,7 +25,7 @@ def convert(s, getdate):
     return (s,)
 
 
-def process(file):
+def process(file, postgreSQL_pool):
     basename = os.path.basename(file)
     with pd.ExcelFile(file) as xls:
         try:
@@ -57,12 +58,11 @@ def process(file):
         buffer = io.StringIO()
         df.to_csv(buffer, index=False)
         buffer.seek(0)
-        conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
-                                password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+        conn = postgreSQL_pool.getconn()
         with conn.cursor() as cur:
             cur.copy_expert(
                 "COPY {0} FROM STDIN WITH CSV HEADER".format(TABLE_NAME), buffer)
         conn.commit()
-        conn.close()
+        postgreSQL_pool.putconn(conn)
         buffer.close()
         return "{f}: {n} dòng được thêm \n".format(f=basename, n=len(df.index)+1)
