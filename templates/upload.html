@@ -124,7 +124,8 @@
                             <div class="progress-bar progress-bar-striped progress-bar-animated bg-success "
                                 role="progressbar" id="progress-bar"></div>
                         </div>
-                        <button class="btn btn-lg upload-btn" for="upload-input" type="button" onclick="document.getElementById('upload-input').click()">Upload File</button>
+                        <button class="btn btn-lg upload-btn" for="upload-input" type="button"
+                            onclick="document.getElementById('upload-input').click()">Upload File</button>
                     </div>
                 </div>
             </div>
@@ -138,7 +139,7 @@
         </div>
     </div>
     <input id="upload-input" type="file" multiple="multiple" onchange="handleFiles(this.files)"></br>
-     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
         integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
@@ -148,7 +149,7 @@
         integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
         crossorigin="anonymous"></script>
     <script>
-        
+
         // ************************ Drag and drop ***************** //
         let dropArea = document.getElementById("drop-area")
         let uploadProgress = []
@@ -192,7 +193,7 @@
             var dt = e.dataTransfer
             var files = dt.files
             handleFiles(files)
-        }        
+        }
 
         function initializeProgress(numFiles) {
             uploadProgress = []
@@ -206,7 +207,7 @@
             uploadProgress[fileNumber] = percent
             let total = uploadProgress.reduce((tot, curr) => tot + curr, 0) / uploadProgress.length
             total = Math.round(total)
-            progressBar.style.width = total + '%'            
+            progressBar.style.width = total + '%'
         }
 
         function handleFiles(files) {
@@ -233,7 +234,7 @@
             xhr.addEventListener('readystatechange', function (e) {
                 if (xhr.readyState == 4 && xhr.status == 200) {
                     updateProgress(i, 100) // <- Add this
-                    document.getElementById("history").value += xhr.responseText
+                    document.getElementById("history").value = xhr.responseText + document.getElementById("history").value
                 } else if (xhr.readyState == 4 && xhr.status != 200) {
                     // Error. Inform the user
                 }
