@@ -9,20 +9,20 @@ from waitress import serve
 import glob
 import io
 
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'.xls', '.xlsx'}
+
+ALLOWED_EXTENSIONS = set('.xls', '.xlsx')
 app = Flask(__name__)
 app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = '/tmp'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
 def __init__():
     try:
-        os.makedirs(UPLOAD_FOLDER)
+        os.makedirs(app.config['UPLOAD_FOLDER'])
     except FileExistsError:
         pass
-    for f in glob.glob(UPLOAD_FOLDER+'/*'):
+    for f in glob.glob(app.config['UPLOAD_FOLDER']+'/*'):
         os.unlink(f)
 
     conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],

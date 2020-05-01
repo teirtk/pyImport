@@ -13,6 +13,3 @@ db = {
     "passwd": "J4cZeMrHCUAJd0tEIUarjALSVQ8KBQtC",
     "port": "5432"
 }
-withdb = False
-verbose = False
-conn = None
