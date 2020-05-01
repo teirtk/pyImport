@@ -13,7 +13,7 @@ import io
 ALLOWED_EXTENSIONS = {'.xls', '.xlsx'}
 app = Flask(__name__)
 app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = 'tmp'
+app.config['UPLOAD_FOLDER'] = '/tmp'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
@@ -44,6 +44,7 @@ def upload_form():
 def upload_file(modname):
 
     f = request.files['file']
+    print(f.filename)
     _, file_extension = os.path.splitext(f.filename)
     if file_extension.lower() in ALLOWED_EXTENSIONS:
         filename = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
