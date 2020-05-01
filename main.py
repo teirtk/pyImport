@@ -7,6 +7,7 @@ import os
 from flask import Flask, render_template, request
 from waitress import serve
 import glob
+import io
 
 UPLOAD_FOLDER = 'uploads'
 
@@ -31,12 +32,12 @@ def upload_file(modname):
     f = request.files['file']
     filename = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
     f.save(filename)
-    return plugins[modname].process(filename, conn)
+    return plugins[modname].process(filename)
 
 
 if __name__ == "__main__":
     __init__()
-    plugins = {
+    plugins = { 
         name: importlib.import_module(name)
         for finder, name, ispkg
         in pkgutil.iter_modules()
@@ -47,5 +48,7 @@ if __name__ == "__main__":
     cur = conn.cursor()
     for id in plugins:
         cur.execute(plugins[id].SQL)
-    serve(app, host='0.0.0.0', port=5000)
+    conn.commit()
     conn.close()
+    serve(app, host='0.0.0.0', port=5000)
+   

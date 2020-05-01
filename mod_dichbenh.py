@@ -7,8 +7,10 @@ from datetime import date
 import config
 import tempfile
 import io
+import psycopg2
 
 SQL = "CREATE TABLE IF NOT EXISTS dichbenh (loai character varying(20),nhom character varying(20),svgh character varying(50),gdst character varying(100),dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(100),fdate date NOT NULL,tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);"
+TABLE_NAME = "dichbenh"
 
 
 def convert(s, getdate):
@@ -22,8 +24,7 @@ def convert(s, getdate):
     return (s,)
 
 
-def process(file, conn):
-    table_name = "dichbenh"
+def process(file):
     basename = os.path.basename(file)
     with pd.ExcelFile(file) as xls:
         try:
@@ -55,8 +56,13 @@ def process(file, conn):
             return "{f} bị lỗi".format(basename)
         buffer = io.StringIO()
         df.to_csv(buffer, index=False)
-        #cur = conn.cursor()
-        #cur.copy_expert(
-        #    "COPY {t} FROM STDIN WITH CSV HEADER".format(t=table_name), buffer)
-        #print(buffer.getvalue())
+        buffer.seek(0)
+        conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
+                                password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+        with conn.cursor() as cur:
+            cur.copy_expert(
+                "COPY {0} FROM STDIN WITH CSV HEADER".format(TABLE_NAME), buffer)
+        conn.commit()
+        conn.close()
+        buffer.close()
         return "{f}: {n} dòng được thêm \n".format(f=basename, n=len(df.index)+1)

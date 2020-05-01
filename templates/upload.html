@@ -2,219 +2,242 @@
 <html>
 
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <title></title>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="googlebot" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>File Uploader - truongvucuong</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"
-    rel="stylesheet">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title></title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>File Uploader - truongvucuong</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  <style>
-    .btn:focus,
-    .upload-btn:focus {
-      outline: 0 !important;
-    }
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+        .btn:focus,
+        .upload-btn:focus {
+            outline: 0 !important;
+        }
 
-    html,
-    body {
-      height: 90%;
-      background-color: #4791D2;
-    }
+        html,
+        body {
+            height: 90%;
+            background-color: #4791D2;
+        }
 
-    body {
-      text-align: center;
-    }
+        body {
+            text-align: center;
+        }
 
-    .row {
-      margin-top: 80px;
-    }
+        .row {
+            margin-top: 40px;
+        }
 
-    .upload-btn {
-      color: #ffffff;
-      background-color: #F89406;
-      border: none;
-      margin-top: 20px
-    }
+        .upload-btn {
+            color: #ffffff;
+            background-color: #F89406;
+            border: none;
+            margin-top: 20px
+        }
 
-    .upload-btn:hover,
-    .upload-btn:focus,
-    .upload-btn:active,
-    .upload-btn.active {
-      color: #ffffff;
-      background-color: #FA8900;
-      border: none;
-    }
+        .upload-btn:hover,
+        .upload-btn:focus,
+        .upload-btn:active,
+        .upload-btn.active {
+            color: #ffffff;
+            background-color: #FA8900;
+            border: none;
+        }
 
-    h4 {
-      padding-bottom: 30px;
-      color: #B8BDC1;
-    }
+        .card {
+            width: 70%
+        }
 
-    h2 {
-      margin-top: 15px;
-      color: #68757E;
-    }
+        label {
+            color: aliceblue
+        }
 
-    .panel {
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }
+        #format {
+            color: aliceblue
+        }
 
-    #upload-input {
-      display: none;
-    }
+        h8 {
+            padding-bottom: 30px;
+            color: #B8BDC1;
+        }
 
-    .oi-cloud-upload:before {
-      font-size: 5em;
-    }
+        h2 {
+            margin-top: 15px;
+            color: #68757E;
+        }
 
-    @media (min-width: 768px) {
-      .main-container {
-        width: 100%;
-      }
-    }
+        .panel {
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
 
-    @media (min-width: 992px) {
-      .container {
-        width: 550px;
-      }
-    }
-  </style>
+        #upload-input {
+            display: none;
+        }
+
+        .oi-cloud-upload:before {
+            font-size: 5em;
+        }
+
+        @media (min-width: 768px) {
+            .main-container {
+                width: 100%;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .container {
+                width: 650px;
+            }
+        }
+
+    </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <div class="card card-default" id="drop-area">
-          <div class="card-body">
-            <span class="oi oi-cloud-upload" aria-hidden="true"></span>
-            <h2>File Uploader</h2>
-            <h4>truongvucuong</h4>
-            <div class="progress">
-              <div class="progress-bar bg-warning" role="progressbar" id="progress-bar"></div>
+    <div class="container">
+        <div class="row">
+            <label class="col-sm-4">Dữ liệu nhập</label>
+            <div class="col" id="format">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="format" id="inlineRadio1" value="caytrong" checked>
+                    <label class="form-check-label" for="inlineRadio1">Cây trồng</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="format" id="inlineRadio2" value="dichbenh">
+                    <label class="form-check-label" for="inlineRadio2">Dịch bệnh</label>
+                </div>
             </div>
-            <button class="btn btn-lg upload-btn" type="button">Upload File</button>
-          </div>
+            <div class="col-12">
+                <div class="card card-default mx-auto" id="drop-area">
+                    <div class="card-body">
+                        <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                        <h2>File Uploader</h2>
+                        <h8>Thả vào đây file .xls hoặc .xlsx</h8>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success " role="progressbar" id="progress-bar"></div>
+                        </div>
+                        <button class="btn btn-lg upload-btn" type="button">Upload File</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+            </div>
         </div>
-      </div>
+        <div class="row">
+            <div class="col-12">
+                <textarea class="form-control" id="history" rows="7"></textarea>
+            </div>
+        </div>
     </div>
-    <div class="row">
-      <div class="col-12">
-        <textarea class="form-control" id="history" rows="7"></textarea>
-      </div>
-    </div>
-  </div>
-  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-    crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-    crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-    crossorigin="anonymous"></script>
-  <script>
-    // ************************ Drag and drop ***************** //
-    let dropArea = document.getElementById("drop-area")
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script>
+        // ************************ Drag and drop ***************** //
+        let dropArea = document.getElementById("drop-area")
 
-      // Prevent default drag behaviors
-      ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false)
-        document.body.addEventListener(eventName, preventDefaults, false)
-      })
+        // Prevent default drag behaviors
+        ;
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false)
+            document.body.addEventListener(eventName, preventDefaults, false)
+        })
 
-      // Highlight drop area when item is dragged over it
-      ;['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, highlight, false)
-      })
+        // Highlight drop area when item is dragged over it
+        ;
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false)
+        })
 
-      ;['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, unhighlight, false)
-      })
+        ;
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false)
+        })
 
-    // Handle dropped files
-    dropArea.addEventListener('drop', handleDrop, false)
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false)
 
-    function preventDefaults(e) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-
-    function highlight(e) {
-      dropArea.classList.add('highlight')
-    }
-
-    function unhighlight(e) {
-      dropArea.classList.remove('active')
-    }
-
-    function handleDrop(e) {
-      var dt = e.dataTransfer
-      var files = dt.files
-
-      handleFiles(files)
-    }
-
-    let uploadProgress = []
-    let progressBar = document.getElementById('progress-bar')
-
-    function initializeProgress(numFiles) {
-      progressBar.setAttribute('aria-valuenow', 0)
-      uploadProgress = []
-
-      for (let i = numFiles; i > 0; i--) {
-        uploadProgress.push(0)
-      }
-    }
-
-    function updateProgress(fileNumber, percent) {
-      uploadProgress[fileNumber] = percent
-      let total = uploadProgress.reduce((tot, curr) => tot + curr, 0) / uploadProgress.length
-      total = Math.round(total)
-      console.log('update', fileNumber, percent, total)
-      progressBar.style.width = total + '%'
-      progressBar.setAttribute('aria-valuenow', total)
-    }
-
-    function handleFiles(files) {
-      files = [...files]
-      initializeProgress(files.length)
-      files.forEach(uploadFile)
-    }
-
-    function uploadFile(file, i) {
-      var url = 'http://localhost:5000/upload/mod_dichbenh'
-      var xhr = new XMLHttpRequest()
-      var formData = new FormData()
-      xhr.open('POST', url, true)
-      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
-
-      // Update progress (can be used to show progress indicator)
-      xhr.upload.addEventListener("progress", function (e) {
-        updateProgress(i, (e.loaded * 100.0 / e.total) || 100)
-      })
-
-      xhr.addEventListener('readystatechange', function (e) {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-          updateProgress(i, 100) // <- Add this
-          document.getElementById("history").value += xhr.responseText
+        function preventDefaults(e) {
+            e.preventDefault()
+            e.stopPropagation()
         }
-        else if (xhr.readyState == 4 && xhr.status != 200) {
-          // Error. Inform the user
-        }
-      })
 
-      formData.append('upload_preset', 'ujpu6gyk')
-      formData.append('file', file)
-      xhr.send(formData)
-    }
-  </script>
+        function highlight(e) {
+            dropArea.classList.add('highlight')
+        }
+
+        function unhighlight(e) {
+            dropArea.classList.remove('active')
+        }
+
+        function handleDrop(e) {
+            var dt = e.dataTransfer
+            var files = dt.files
+
+            handleFiles(files)
+            progressBar.setAttribute('aria-valuenow', 0)
+        }
+
+        let uploadProgress = []
+        let progressBar = document.getElementById('progress-bar')
+
+        function initializeProgress(numFiles) {
+            progressBar.setAttribute('aria-valuenow', 0)
+            uploadProgress = []
+
+            for (let i = numFiles; i > 0; i--) {
+                uploadProgress.push(0)
+            }
+        }
+
+        function updateProgress(fileNumber, percent) {
+            uploadProgress[fileNumber] = percent
+            let total = uploadProgress.reduce((tot, curr) => tot + curr, 0) / uploadProgress.length
+            total = Math.round(total)
+            progressBar.style.width = total + '%'
+            progressBar.setAttribute('aria-valuenow', total)
+        }
+
+        function handleFiles(files) {
+            files = [...files]
+            initializeProgress(files.length)
+            files.forEach(uploadFile)
+        }
+
+        function uploadFile(file, i) {
+            const checked = document.querySelector('input[name=format]:checked');
+
+            var url = 'http://localhost:5000/upload/mod_'+checked.value
+            var xhr = new XMLHttpRequest()
+            var formData = new FormData()
+            xhr.open('POST', url, true)
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+
+            // Update progress (can be used to show progress indicator)
+            xhr.upload.addEventListener("progress", function(e) {
+                updateProgress(i, (e.loaded * 100.0 / e.total) || 100)
+            })
+
+            xhr.addEventListener('readystatechange', function(e) {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    updateProgress(i, 100) // <- Add this
+                    document.getElementById("history").value += xhr.responseText
+                } else if (xhr.readyState == 4 && xhr.status != 200) {
+                    // Error. Inform the user
+                }
+            })
+
+            formData.append('upload_preset', 'ujpu6gyk')
+            formData.append('file', file)
+            xhr.send(formData)
+        }
+
+    </script>
 </body>
 
 </html>

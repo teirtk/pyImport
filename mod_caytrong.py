@@ -2,14 +2,16 @@ import pandas as pd
 import numpy as np
 import json
 import re
+import io
 import os
 from pandas import ExcelFile
 from datetime import datetime
 import config
-import tempfile
+import psycopg2
 # Lấy ngày ra ở sheet đầu tiên
 
 SQL = "CREATE TABLE IF NOT EXISTS caytrong (data jsonb);"
+TABLE_NAME = "caytrong"
 
 
 def extract_date(s):
@@ -77,11 +79,10 @@ rep = {"Cây Lúa": "Lúa",
        r"^Khác \(.*": "Khác"}
 
 
-def process(file, conn):
-    table_name = "caytrong"
+def process(file):
     basename = os.path.basename(file)
-    data_file = tempfile.NamedTemporaryFile()
-    with open(data_file, "w+", encoding="utf8") as f, pd.ExcelFile(file) as xls:
+    buffer = io.StringIO()
+    with pd.ExcelFile(file) as xls:
         count = 0
         for idx, name in enumerate(xls.sheet_names):
             try:
@@ -121,19 +122,23 @@ def process(file, conn):
                     {"thuoctinh": lambda x: ",".join(x)})
                 for nhom, chuyenmuc, thuoctinh in dfp.to_records():
                     count += 1
-                    f.write(json.dumps({
+                    buffer.write(json.dumps({
                         "nhom": nhom,
                         "chuyenmuc": str(chuyenmuc),
                         "thuoctinh": json.loads("{"+str(thuoctinh)+"}"),
-                            "fdate": datetime.strptime(fdate, "%d-%m-%Y").isoformat(),
-                            "mota1": mota1,
-                            "mota2": mota2
-                            }, ensure_ascii=False)+"\n")
+                        "fdate": datetime.strptime(fdate, "%d-%m-%Y").isoformat(),
+                        "mota1": mota1,
+                        "mota2": mota2
+                    }, ensure_ascii=False)+"\n")
             except:
                 return "File {f} bị lỗi ở sheet {n}".format(f=basename, n=name)
 
-    with open(data_file, "r", encoding="utf8") as f:
-        cur = conn.cursor()
-        cur.copy_from(f, table_name)
-        conn.commit()
-    return "{f}: {n} rows added \n".format(f=basename, n=count)
+    buffer.seek(0)
+    conn = psycopg2.connect(database=config.db["db"], user=config.db["user"],
+                            password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+    with conn.cursor() as cur:
+        cur.copy_from(buffer, TABLE_NAME)
+    conn.commit()
+    conn.close()
+    buffer.close()
+    return "{f}: {n} dòng được thêm \n".format(f=basename, n=count)
