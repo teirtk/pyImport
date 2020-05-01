@@ -22,7 +22,7 @@ def extract_date(s):
             d = "0"+d
         if len(m) == 1:
             m = "0"+m
-        return d+"-"+m+"-"+y
+        return y+"-"+m+"-"+d
 
 
 def fix_addr(s):
@@ -126,7 +126,7 @@ def process(file):
                         "nhom": nhom,
                         "chuyenmuc": str(chuyenmuc),
                         "thuoctinh": json.loads("{"+str(thuoctinh)+"}"),
-                        "fdate": datetime.strptime(fdate, "%d-%m-%Y").isoformat(),
+                        "fdate": fdate,
                         "mota1": mota1,
                         "mota2": mota2
                     }, ensure_ascii=False)+"\n")
