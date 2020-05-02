@@ -79,11 +79,11 @@ rep = {"Cây Lúa": "Lúa",
        r"^Khác \(.*": "Khác"}
 
 
-def process(file,postgreSQL_pool):
+def process(file, postgreSQL_pool):
     basename = os.path.basename(file)
     buffer = io.StringIO()
+    count = 0
     with pd.ExcelFile(file) as xls:
-        count = 0
         for idx, name in enumerate(xls.sheet_names):
             try:
                 if name.startswith("Sheet") or name.startswith("Compa"):
@@ -131,13 +131,15 @@ def process(file,postgreSQL_pool):
                         "mota2": mota2
                     }, ensure_ascii=False)+"\n")
             except:
-                return "File {f} bị lỗi ở sheet {n}".format(f=basename, n=name)
-
-    buffer.seek(0)
-    conn = postgreSQL_pool.getconn()
-    with conn.cursor() as cur:
-        cur.copy_from(buffer, TABLE_NAME)
-    conn.commit()
-    postgreSQL_pool.putconn(conn)
+                return "{f}: Sai định dạng ở sheet {n}".format(f=basename, n=name)
+    if count:
+        buffer.seek(0)
+        conn = postgreSQL_pool.getconn()
+        with conn.cursor() as cur:
+            cur.copy_from(buffer, TABLE_NAME)
+        conn.commit()
+        postgreSQL_pool.putconn(conn)
+        buffer.close()
+        return "{f}: {n} dòng được thêm \n".format(f=basename, n=count)
     buffer.close()
-    return "{f}: {n} dòng được thêm \n".format(f=basename, n=count)
+    return "{f}: Sai định dạng \n".format(f=basename)

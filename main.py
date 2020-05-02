@@ -18,7 +18,7 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 postgreSQL_pool = psycopg2.pool.ThreadedConnectionPool(1, 10, database=config.db["db"], user=config.db["user"],
-                                                     password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+                                                       password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
 
 
 def __init__():
@@ -34,7 +34,7 @@ def __init__():
     cur = conn.cursor()
     for id in plugins:
         cur.execute(plugins[id].SQL)
-    conn.commit()
+        conn.commit()
     postgreSQL_pool.putconn(conn)
 
 

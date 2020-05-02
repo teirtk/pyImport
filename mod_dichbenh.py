@@ -57,12 +57,16 @@ def process(file, postgreSQL_pool):
             return "{f} bị lỗi".format(basename)
         buffer = io.StringIO()
         df.to_csv(buffer, index=False)
-        buffer.seek(0)
-        conn = postgreSQL_pool.getconn()
-        with conn.cursor() as cur:
-            cur.copy_expert(
-                "COPY {0} FROM STDIN WITH CSV HEADER".format(TABLE_NAME), buffer)
-        conn.commit()
-        postgreSQL_pool.putconn(conn)
+        nline=buffer.getvalue().count('\n')
+        if nline > 1:
+            buffer.seek(0)
+            conn = postgreSQL_pool.getconn()
+            with conn.cursor() as cur:
+                cur.copy_expert(
+                    "COPY {0} FROM STDIN WITH CSV HEADER".format(TABLE_NAME), buffer)
+            conn.commit()
+            postgreSQL_pool.putconn(conn)
+            buffer.close()
+            return "{f}: {n} dòng được thêm \n".format(f=basename, n=nline)
         buffer.close()
-        return "{f}: {n} dòng được thêm \n".format(f=basename, n=len(df.index)+1)
+        return "{f}: Sai định dạng \n".format(f=basename)
