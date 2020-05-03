@@ -16,3 +16,17 @@ else:
         "passwd": "b7ec6b08dc1f4f3383663c0ecdf5dda7",
         "port": "5432"
     }
+ext = {
+    "dichbenh":{
+        "table":"dichbenh",
+        "sql":"CREATE TABLE IF NOT EXISTS dichbenh (loai character varying(20),\
+        nhom character varying(20),svgh character varying(50),gdst character varying(100),\
+        dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,\
+        dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(100),fdate date NOT NULL,\
+        tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);"
+    },
+    "caytrong":{
+        "table":"caytrong",
+        "sql":"CREATE TABLE IF NOT EXISTS caytrong (data jsonb);"
+    }
+}

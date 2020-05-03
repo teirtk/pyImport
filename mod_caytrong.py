@@ -1,28 +1,21 @@
-import pandas as pd
-import numpy as np
 import json
 import re
 import io
 import os
-from pandas import ExcelFile
-from datetime import datetime
+import pandas as pd
+import numpy as np
 import config
-import psycopg2
-# Lấy ngày ra ở sheet đầu tiên
-
-SQL = "CREATE TABLE IF NOT EXISTS caytrong (data jsonb);"
-TABLE_NAME = "caytrong"
-
 
 def extract_date(s):
     r1 = re.findall(r"gày ([0-9]+) tháng ([0-9]+) năm ([0-9]+)", s)
-    if len(r1):
+    if len(r1) > 0:
         (d, m, y) = r1[0]
         if len(d) == 1:
             d = "0"+d
         if len(m) == 1:
             m = "0"+m
         return y+"-"+m+"-"+d
+    return ''
 
 
 def fix_addr(s):
@@ -50,12 +43,14 @@ def get_col(df):
             return col
         elif col == 'Unnamed: 1':
             f = True
+    return 0
 
 
 def get_first_row(ds):
     for index, value in ds.items():
         if value == 'Cây Lúa':
             return index
+    return 0
 
 
 keyword = set(["Lúa", "Mía", "Dừa", "Đậu Xanh", "Khóm",
@@ -119,7 +114,7 @@ def process(file, postgreSQL_pool):
                 df[col2] = df[col2].round(2).apply(str)
                 df['thuoctinh'] = '"'+df['chuyenmuc'] + '":'+df[col2]
                 dfp = df.groupby(["nhom", "Unnamed: 1"]).agg(
-                    {"thuoctinh": lambda x: ",".join(x)})
+                    {"thuoctinh": ",".join})
                 for nhom, chuyenmuc, thuoctinh in dfp.to_records():
                     count += 1
                     buffer.write(json.dumps({
@@ -130,16 +125,16 @@ def process(file, postgreSQL_pool):
                         "mota1": mota1,
                         "mota2": mota2
                     }, ensure_ascii=False)+"\n")
-            except:
+            except TypeError:
                 return "{f}: Sai định dạng ở sheet {n}".format(f=basename, n=name)
     if count:
         buffer.seek(0)
         conn = postgreSQL_pool.getconn()
         with conn.cursor() as cur:
-            cur.copy_from(buffer, TABLE_NAME)
+            cur.copy_from(buffer, config.ext["caytrong"]["table"])
         conn.commit()
         postgreSQL_pool.putconn(conn)
         buffer.close()
         return "{f}: {n} dòng được thêm \n".format(f=basename, n=count)
     buffer.close()
-    return "{f}: Sai định dạng \n".format(f=basename)
+    return "{0}: Sai định dạng \n".format(basename)

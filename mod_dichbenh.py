@@ -1,26 +1,19 @@
+
+from datetime import date
 import re
 import os
-import config
-import tempfile
 import io
-import psycopg2
-import numpy as np
 import pandas as pd
-from pandas import ExcelFile
-from datetime import date
-from psycopg2 import pool
-
-SQL = "CREATE TABLE IF NOT EXISTS dichbenh (loai character varying(20),nhom character varying(20),svgh character varying(50),gdst character varying(100),dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(100),fdate date NOT NULL,tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);"
-TABLE_NAME = "dichbenh"
+import config
 
 
 def convert(s, getdate):
-    if type(s) == str:
+    if isinstance(s, str):
         if getdate:
             r1 = re.findall(r"([0-9]+) năm ([0-9]+)", s)
         else:
             r1 = re.findall(r"([0-9]+) -  ([0-9]+)", str(s))
-        if len(r1):
+        if len(r1) > 0:
             return r1[0]
     return (s,)
 
@@ -39,31 +32,37 @@ def process(file, postgreSQL_pool):
             new = df["Unnamed: 7"].str.split("- ", expand=True)
             df["mdcao1"] = new[0]
             df["mdcao2"] = new[1]
-            df = df.iloc[11:, 1:].reset_index(drop=True).drop(columns=["Unnamed: 5", "Unnamed: 6", "Unnamed: 7", "Unnamed: 10", "Unnamed: 14",
-                                                                       "Unnamed: 16", "Unnamed: 18", "Unnamed: 20", "Unnamed: 21"])
+            df = df.iloc[11:, 1:].reset_index(drop=True).drop(columns=[
+                "Unnamed: 5", "Unnamed: 6", "Unnamed: 7", "Unnamed: 10", "Unnamed: 14",
+                "Unnamed: 16", "Unnamed: 18", "Unnamed: 20", "Unnamed: 21"])
 
-            df.columns = ["loai", "nhom", "svgh", "gdst", "dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong",
-                          "dtmattrang", "dtsokytruoc", "dtphongtru", "phanbo", "fdate", "tdate", "mdpb1", "mdpb2", "mdcao1", "mdcao2"]
+            df.columns = ["loai", "nhom", "svgh", "gdst", "dtnhiemnhe", "dtnhiemtb",
+                          "dtnhiemnang", "dttong", "dtmattrang", "dtsokytruoc", "dtphongtru",
+                          "phanbo", "fdate", "tdate", "mdpb1", "mdpb2", "mdcao1", "mdcao2"]
             df.loc[:, ["loai", "nhom", "svgh", "gdst"]] = df.loc[:, [
-                "loai", "nhom", "svgh", "gdst"]].applymap(lambda x: x.strip() if isinstance(x, str) else x)
+                "loai", "nhom", "svgh", "gdst"]].applymap(
+                    lambda x: x.strip() if isinstance(x, str) else x)
             df.loc[:, "nhom"] = df.loc[:, "svgh"].where(
                 df.loc[:, "svgh"].str.startswith("Nhóm cây:")).str.replace("Nhóm cây: ", "")
             df.loc[:, ["loai", "nhom"]] = df.loc[:, [
                 "loai", "nhom"]].fillna(method="ffill")
             df = df.dropna(subset=["gdst"])
-            df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong", "dtmattrang", "dtsokytruoc", "dtphongtru"]] = df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong",
-                                                                                                                                    "dtmattrang", "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '') if isinstance(x, str) else x)
-        except:
-            return "{f} bị lỗi".format(basename)
+            df.loc[:, ["dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong", "dtmattrang",
+                       "dtsokytruoc", "dtphongtru"]] = df.loc[:, [
+                           "dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong", "dtmattrang",
+                           "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '')
+                                                                  if isinstance(x, str) else x)
+        except TypeError:
+            return "{0} bị lỗi".format(basename)
         buffer = io.StringIO()
         df.to_csv(buffer, index=False)
-        nline=buffer.getvalue().count('\n')
+        nline = buffer.getvalue().count('\n')
         if nline > 1:
             buffer.seek(0)
             conn = postgreSQL_pool.getconn()
             with conn.cursor() as cur:
-                cur.copy_expert(
-                    "COPY {0} FROM STDIN WITH CSV HEADER".format(TABLE_NAME), buffer)
+                cur.copy_expert("COPY {0} FROM STDIN WITH CSV HEADER"
+                                .format(config.ext["dichbenh"]["table"]), buffer)
             conn.commit()
             postgreSQL_pool.putconn(conn)
             buffer.close()

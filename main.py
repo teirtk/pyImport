@@ -1,14 +1,11 @@
-import time
-import importlib
-import pkgutil
-import psycopg2
-import config
 import os
 import glob
-import io
+import importlib
+import pkgutil
 from flask import Flask, render_template, request
 from waitress import serve
 from psycopg2 import pool
+import config
 
 
 ALLOWED_EXTENSIONS = {'.xls', '.xlsx'}
@@ -17,8 +14,9 @@ app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-postgreSQL_pool = psycopg2.pool.ThreadedConnectionPool(1, 10, database=config.db["db"], user=config.db["user"],
-                                                       password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+postgreSQL_pool = pool.ThreadedConnectionPool(1, 10, \
+    database=config.db["db"], user=config.db["user"], \
+    password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
 
 
 def __init__():
@@ -26,14 +24,14 @@ def __init__():
         os.makedirs(app.config['UPLOAD_FOLDER'])
     except FileExistsError:
         pass
-    for f in glob.glob(app.config['UPLOAD_FOLDER']+'/*'):
-        if os.path.isfile(f):
-            os.unlink(f)
+    for file in glob.glob(app.config['UPLOAD_FOLDER']+'/*'):
+        if os.path.isfile(file):
+            os.unlink(file)
 
     conn = postgreSQL_pool.getconn()
     cur = conn.cursor()
-    for id in plugins:
-        cur.execute(plugins[id].SQL)
+    for idx in plugins:
+        cur.execute(plugins[idx].SQL)
         conn.commit()
     postgreSQL_pool.putconn(conn)
 
@@ -46,11 +44,11 @@ def upload_form():
 @app.route('/upload/<modname>', methods=['POST'])
 def upload_file(modname):
 
-    f = request.files['file']
-    _, file_extension = os.path.splitext(f.filename)
+    file = request.files['file']
+    _, file_extension = os.path.splitext(file.filename)
     if file_extension.lower() in ALLOWED_EXTENSIONS:
-        filename = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
-        f.save(filename)
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filename)
         return plugins[modname].process(filename, postgreSQL_pool)
     return "Tập tin sai định dạng\n"
 
@@ -63,7 +61,6 @@ if __name__ == "__main__":
         if name.startswith("mod_")
     }
     __init__()
-    port = int(os.environ.get("PORT", 5000))
-    serve(app, host='0.0.0.0', port=port)
-    if (postgreSQL_pool):
+    serve(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    if postgreSQL_pool:
         postgreSQL_pool.closeall()
