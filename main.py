@@ -30,8 +30,8 @@ def __init__():
 
     conn = postgreSQL_pool.getconn()
     cur = conn.cursor()
-    for idx in plugins:
-        cur.execute(plugins[idx].SQL)
+    for idx in config.ext:
+        cur.execute(config.ext[idx]["sql"])
         conn.commit()
     postgreSQL_pool.putconn(conn)
 
