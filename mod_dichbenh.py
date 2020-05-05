@@ -18,7 +18,7 @@ def convert(s, getdate):
     return (s,)
 
 
-def process(file, postgreSQL_pool):
+def process(file, postgreSQL_pool,upsert = False):
     basename = os.path.basename(file)
     with pd.ExcelFile(file) as xls:
         try:
@@ -61,8 +61,13 @@ def process(file, postgreSQL_pool):
             buffer.seek(0)
             conn = postgreSQL_pool.getconn()
             with conn.cursor() as cur:
-                cur.copy_expert("COPY {0} FROM STDIN WITH CSV HEADER"
-                                .format(config.ext["dichbenh"]["table"]), buffer)
+                cur.execute("CREATE TEMP TABLE tmp_table ON COMMIT DROP AS \
+                (select * from {0} limit 0);".format(config.ext["dichbenh"]["table"]))
+                cur.copy_expert(
+                    "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
+                row = cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
+                ON CONFLICT DO NOTHING;".format(config.ext["dichbenh"]["table"]))
+                print(row)
             conn.commit()
             postgreSQL_pool.putconn(conn)
             buffer.close()

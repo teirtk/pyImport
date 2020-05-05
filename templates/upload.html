@@ -32,7 +32,7 @@
         }
 
         .row {
-            margin-top: 40px
+            margin-top: 1em
         }
 
         .upload-btn {
@@ -83,6 +83,10 @@
 
         .oi-cloud-upload:before {
             font-size: 5em
+        }
+
+        .col-sm-8 {
+            text-align: left;
         }
 
         @media (min-width:768px) {
@@ -138,6 +142,12 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-sm-8">
+                <input type="checkbox" class="form-check-input" id="upsert">
+                <label class="form-check-label" for="upsert">Ghi đè khi gặp dữ liệu trùng</label>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-12">
                 <textarea class="form-control" id="history" rows="7"></textarea>
             </div>
@@ -151,7 +161,6 @@
         integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
         crossorigin="anonymous"></script>
     <script>
-
         // ************************ Drag and drop ***************** //
         let dropArea = document.getElementById("drop-area")
         let progressBar = document.getElementById('progress-bar')
@@ -221,8 +230,10 @@
 
         function uploadFile(file, i) {
             const checked = document.querySelector('input[name=format]:checked');
-
-            var url = '/upload/mod_' + checked.value
+            if (document.getElementById("myCheck").checked) {
+                upsert = "_upsert"
+            } else upsert = ""
+            var url = '/upload/mod_' + checked.value + upsert
             var xhr = new XMLHttpRequest()
             var formData = new FormData()
             xhr.open('POST', url, true)
