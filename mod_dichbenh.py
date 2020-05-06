@@ -66,7 +66,7 @@ def process(file, postgreSQL_pool):
                 cur.copy_expert(
                     "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
                 cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
-                    ON CONFLICT DO NOTHING;".format(config.ext["dichbenh"]["table"]))
+                    EXCEPT SELECT * FROM {0};".format(config.ext["dichbenh"]["table"]))
                 nline = cur.rowcount
                 print(nline)
             conn.commit()

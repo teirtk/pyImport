@@ -136,7 +136,7 @@ def process(file, postgreSQL_pool):
                     TABLE {0} WITH NO DATA;".format(config.ext["caytrong"]["table"]))
             cur.copy_from(buffer, "tmp_table")
             cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
-                    WHERE NOT EXISTS (SELECT * FROM {0});".format(config.ext["caytrong"]["table"]))
+                    EXCEPT SELECT * FROM {0};".format(config.ext["caytrong"]["table"]))
             nline = cur.rowcount
             print(nline)
         conn.commit()
