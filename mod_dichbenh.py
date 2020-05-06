@@ -18,7 +18,7 @@ def convert(s, getdate):
     return (s,)
 
 
-def process(file, postgreSQL_pool,upsert = False):
+def process(file, postgreSQL_pool):
     basename = os.path.basename(file)
     with pd.ExcelFile(file) as xls:
         try:
@@ -62,15 +62,18 @@ def process(file, postgreSQL_pool,upsert = False):
             conn = postgreSQL_pool.getconn()
             with conn.cursor() as cur:
                 cur.execute("CREATE TEMP TABLE tmp_table ON COMMIT DROP AS \
-                (select * from {0} limit 0);".format(config.ext["dichbenh"]["table"]))
+                TABLE {0} WITH NO DATA;".format(config.ext["dichbenh"]["table"]))
                 cur.copy_expert(
                     "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
-                row = cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
-                ON CONFLICT DO NOTHING;".format(config.ext["dichbenh"]["table"]))
-                print(row)
+                cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
+                    ON CONFLICT DO NOTHING;".format(config.ext["dichbenh"]["table"]))
+                nline = cur.rowcount
+                print(nline)
             conn.commit()
             postgreSQL_pool.putconn(conn)
             buffer.close()
-            return "{f}: {n} dòng được thêm \n".format(f=basename, n=nline)
+            if nline > 0:
+                return "{f}: {n} dòng được thêm \n".format(f=basename, n=nline)
+            return "{f}: Dữ liệu đã có (bỏ qua) \n".format(f=basename)
         buffer.close()
         return "{f}: Sai định dạng \n".format(f=basename)

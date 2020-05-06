@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import config
 
+
 def extract_date(s):
     r1 = re.findall(r"gày ([0-9]+) tháng ([0-9]+) năm ([0-9]+)", s)
     if len(r1) > 0:
@@ -127,14 +128,23 @@ def process(file, postgreSQL_pool):
                     }, ensure_ascii=False)+"\n")
             except TypeError:
                 return "{f}: Sai định dạng ở sheet {n}".format(f=basename, n=name)
-    if count:
+    if count > 0:
         buffer.seek(0)
         conn = postgreSQL_pool.getconn()
         with conn.cursor() as cur:
-            cur.copy_from(buffer, config.ext["caytrong"]["table"])
+            cur.execute("CREATE TEMP TABLE tmp_table ON COMMIT DROP AS \
+                    TABLE {0} WITH NO DATA;".format(config.ext["caytrong"]["table"]))
+            cur.copy_from(buffer, "tmp_table")
+            cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
+                    WHERE NOT EXISTS (SELECT * FROM {0});".format(config.ext["caytrong"]["table"]))
+            nline = cur.rowcount
+            print(nline)
         conn.commit()
         postgreSQL_pool.putconn(conn)
         buffer.close()
-        return "{f}: {n} dòng được thêm \n".format(f=basename, n=count)
+        if nline > 0:
+            return "{f}: {n} dòng được thêm \n".format(f=basename, n=nline)
+        return "{f}: Dữ liệu đã có (bỏ qua) \n".format(f=basename)
+
     buffer.close()
-    return "{0}: Sai định dạng \n".format(basename)
+    return "{f}: Sai định dạng \n".format(f=basename)
