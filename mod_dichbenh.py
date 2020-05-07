@@ -18,6 +18,10 @@ def convert(s, getdate):
     return (s,)
 
 
+rep = {"TX ": "Thị xã ",
+       "TP ": "Thành phố "}
+
+
 def process(file, postgreSQL_pool):
     basename = os.path.basename(file)
     with pd.ExcelFile(file) as xls:
@@ -42,8 +46,9 @@ def process(file, postgreSQL_pool):
             df.loc[:, ["loai", "nhom", "svgh", "gdst"]] = df.loc[:, [
                 "loai", "nhom", "svgh", "gdst"]].applymap(
                     lambda x: x.strip() if isinstance(x, str) else x)
-            df.loc[:, "nhom"] = df.loc[:, "svgh"].where(
-                df.loc[:, "svgh"].str.startswith("Nhóm cây:")).str.replace("Nhóm cây: ", "")
+            df["phanbo"] = df["phanbo"].replace(rep, regex=True)
+            df["nhom"] = df["svgh"].where(
+                df["svgh"].str.startswith("Nhóm cây:")).str.replace("Nhóm cây: ", "")
             df.loc[:, ["loai", "nhom"]] = df.loc[:, [
                 "loai", "nhom"]].fillna(method="ffill")
             df = df.dropna(subset=["gdst"])
@@ -68,7 +73,6 @@ def process(file, postgreSQL_pool):
                 cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
                     EXCEPT SELECT * FROM {0};".format(config.ext["dichbenh"]["table"]))
                 nline = cur.rowcount
-                print(nline)
             conn.commit()
             postgreSQL_pool.putconn(conn)
             buffer.close()

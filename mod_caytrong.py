@@ -44,14 +44,14 @@ def get_col(df):
             return col
         elif col == 'Unnamed: 1':
             f = True
-    return 0
+    return -1
 
 
 def get_first_row(ds):
     for index, value in ds.items():
         if value == 'Cây Lúa':
             return index
-    return 0
+    return -1
 
 
 keyword = set(["Lúa", "Mía", "Dừa", "Đậu Xanh", "Khóm",
@@ -138,7 +138,6 @@ def process(file, postgreSQL_pool):
             cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
                     EXCEPT SELECT * FROM {0};".format(config.ext["caytrong"]["table"]))
             nline = cur.rowcount
-            print(nline)
         conn.commit()
         postgreSQL_pool.putconn(conn)
         buffer.close()

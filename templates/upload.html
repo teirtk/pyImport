@@ -13,6 +13,9 @@
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script type="application/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.0/min/dropzone.min.js">
+        </script>
     <style>
         /* prefixed by https://autoprefixer.github.io (PostCSS: v7.0.26, autoprefixer: v9.7.3) */
 
@@ -32,7 +35,7 @@
         }
 
         .row {
-            margin-top: 1em
+            margin-top: 2em
         }
 
         .upload-btn {
@@ -57,7 +60,8 @@
             width: 70%
         }
 
-        #format, label {
+        #format,
+        label {
             color: #f0f8ff
         }
 
@@ -76,6 +80,7 @@
             padding-bottom: 20px
         }
 
+        .dz-preview,
         #upload-input {
             display: none
         }
@@ -117,16 +122,21 @@
                     <input class="form-check-input" type="radio" name="format" id="inlineRadio2" value="dichbenh">
                     <label class="form-check-label" for="inlineRadio2">Dịch bệnh</label>
                 </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="format" id="inlineRadio3" value="channuoi">
+                    <label class="form-check-label" for="inlineRadio3">Chăn nuôi</label>
+                </div>
             </div>
             <div class="col-12">
-                <div class="card card-default rounded mx-auto" id="drop-area">
+                <div class="card card-default rounded mx-auto" id="my-dropzone" class="dropzone">
+                    <input type="file" name="file" id="upload-input" />
                     <div class="card-body">
                         <span class="oi oi-cloud-upload" aria-hidden="true"></span>
                         <h2>File Uploader</h2>
                         <h8>Thả vào đây file .xls hoặc .xlsx</h8>
                         <div class="progress">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success "
-                                role="progressbar" id="progress-bar"></div>
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                data-dz-uploadprogress role="progressbar" id="progress-bar"></div>
                         </div>
                         <button class="btn btn-lg upload-btn" for="upload-input" type="button"
                             onclick="document.getElementById('upload-input').click()">Upload File</button>
@@ -142,7 +152,6 @@
             </div>
         </div>
     </div>
-    <input id="upload-input" type="file" multiple="multiple" onchange="handleFiles(this.files)"></br>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
         integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
         crossorigin="anonymous"></script>
@@ -150,100 +159,37 @@
         integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
         crossorigin="anonymous"></script>
     <script>
-        // ************************ Drag and drop ***************** //
-        let dropArea = document.getElementById("drop-area")
-        let progressBar = document.getElementById('progress-bar')
-        let uploadBtn = document.getElementById('upload-btn')
-        let uploadProgress = []
-            // Prevent default drag behaviors
-            ;
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false)
-            document.body.addEventListener(eventName, preventDefaults, false)
-        })
-
-            // Highlight drop area when item is dragged over it
-            ;
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false)
-        })
-
-            ;
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false)
-        })
-
-        // Handle dropped files
-        dropArea.addEventListener('drop', handleDrop, false)
-
-        function preventDefaults(e) {
-            e.preventDefault()
-            e.stopPropagation()
-        }
-
-        function highlight(e) {
-            dropArea.classList.add('highlight')
-        }
-
-        function unhighlight(e) {
-            dropArea.classList.remove('highlight')
-        }
-
-        function handleDrop(e) {
-            var dt = e.dataTransfer
-            var files = dt.files
-            handleFiles(files)
-        }
-
-        function initializeProgress(numFiles) {
-            uploadProgress = []
-
-            for (let i = numFiles; i > 0; i--) {
-                uploadProgress.push(0)
-            }
-        }
-
-        function updateProgress(fileNumber, percent) {
-            uploadProgress[fileNumber] = percent
-            let total = uploadProgress.reduce((tot, curr) => tot + curr, 0) / uploadProgress.length
-            total = Math.round(total)
-            progressBar.style.width = total + '%'
-        }
-
-        function handleFiles(files) {
-            progressBar.style.width = '0%'
-            files = [...files]
-            initializeProgress(files.length)
-            files.forEach(uploadFile)
-        }
-
-        function uploadFile(file, i) {
-            const checked = document.querySelector('input[name=format]:checked');
-            var url = '/upload/mod_' + checked.value 
-            var xhr = new XMLHttpRequest()
-            var formData = new FormData()
-            xhr.open('POST', url, true)
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
-
-            // Update progress (can be used to show progress indicator)
-            xhr.upload.addEventListener("progress", function (e) {
-                updateProgress(i, (e.loaded * 100.0 / e.total) || 100)
-            })
-
-            xhr.addEventListener('readystatechange', function (e) {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    updateProgress(i, 100) // <- Add this
-                    document.getElementById("history").value = xhr.responseText + document.getElementById("history").value
-                } else if (xhr.readyState == 4 && xhr.status != 200) {
-                    // Error. Inform the user
+        let myDropzone = new Dropzone("div#my-dropzone", {
+            method: 'POST',
+            url: '/upload/',
+            paramName: "file", // The name that will be used to transfer the file
+            chunking: true,
+            previewsContainer: null,
+            forceChunking: true,
+            maxFilesize: 1025, // megabytes
+            chunkSize: 5000000, // bytes
+            init: function () {
+                this.on("addedfile", function (file) {
+                    this.options.url = '/upload/mod_' + document.querySelector('input[name=format]:checked').value;
+                });
+            },
+            uploadprogress: function (file, progress, bytesSent) {
+                if (file.previewElement) {
+                    var progressElement = file.previewElement.querySelector("[data-dz-uploadprogress]");
+                    progressElement.style.width = progress + "%";
                 }
-            })
+            },
+            success: function () {
+                var args = Array.prototype.slice.call(arguments);
+                document.getElementById("history").value = args[0].xhr.responseText + document.getElementById("history").value
+            }
+        });
+        Dropzone.options.myDropzone = false;
+        // This is useful when you want to create the
+        // Dropzone programmatically later
 
-            formData.append('upload_preset', 'ujpu6gyk')
-            formData.append('file', file)
-            xhr.send(formData)
-        }
-
+        // Disable auto discover for all elements:
+        Dropzone.autoDiscover = false;       
     </script>
 </body>
 
