@@ -3,11 +3,12 @@ from datetime import date
 import re
 import os
 import io
+import locale
 import pandas as pd
 import config
 
 
-def convert(s, getdate):
+def get_date(s, getdate):
     if isinstance(s, str):
         if getdate:
             r1 = re.findall(r"([0-9]+) năm ([0-9]+)", s)
@@ -27,7 +28,7 @@ def process(file, postgreSQL_pool):
     with pd.ExcelFile(file) as xls:
         try:
             df = pd.read_excel(xls)
-            (w, y) = convert(df.loc[6, "Unnamed: 5"], True)
+            (w, y) = get_date(df.loc[6, "Unnamed: 5"], True)
             df["fdate"] = date.fromisocalendar(int(y), int(w), 1)
             df["tdate"] = date.fromisocalendar(int(y), int(w), 7)
             new = df["Unnamed: 6"].str.split("- ", expand=True)
@@ -58,7 +59,7 @@ def process(file, postgreSQL_pool):
                            "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '')
                                                                   if isinstance(x, str) else x)
         except TypeError:
-            return "{0} bị lỗi".format(basename)
+            return f"{basename} bị lỗi"
         buffer = io.StringIO()
         df.to_csv(buffer, index=False)
         nline = buffer.getvalue().count('\n')
@@ -66,18 +67,20 @@ def process(file, postgreSQL_pool):
             buffer.seek(0)
             conn = postgreSQL_pool.getconn()
             with conn.cursor() as cur:
-                cur.execute("CREATE TEMP TABLE tmp_table ON COMMIT DROP AS \
-                TABLE {0} WITH NO DATA;".format(config.ext["dichbenh"]["table"]))
+                cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
+                            f"TABLE {config.ext['dichbenh']['table']} WITH NO DATA;")
                 cur.copy_expert(
                     "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
-                cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
-                    EXCEPT SELECT * FROM {0};".format(config.ext["dichbenh"]["table"]))
-                nline = cur.rowcount
-            conn.commit()
-            postgreSQL_pool.putconn(conn)
-            buffer.close()
-            if nline > 0:
-                return "{f}: {n} dòng được thêm \n".format(f=basename, n=nline)
-            return "{f}: Dữ liệu đã có (bỏ qua) \n".format(f=basename)
+                cur.execute(f"INSERT INTO {config.ext['dichbenh']['table']} "
+                            f"SELECT * FROM tmp_table EXCEPT "
+                            f"SELECT * FROM {config.ext['dichbenh']['table']};")
+                nrow = cur.rowcount
+                conn.commit()
+                postgreSQL_pool.putconn(conn)
+                buffer.close()
+                locale.setlocale(locale.LC_ALL, 'vi_VN.utf-8')
+                if nrow > 0:
+                    return f"{basename}: {nrow:n} dòng được thêm \n"
+                return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
         buffer.close()
-        return "{f}: Sai định dạng \n".format(f=basename)
+        return f"{basename}: Sai định dạng \n"

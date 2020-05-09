@@ -7,7 +7,6 @@ from waitress import serve
 from psycopg2 import pool
 import config
 
-ALLOWED_EXTENSIONS = {'.xls', '.xlsx'}
 app = Flask(__name__)
 app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = 'uploads'

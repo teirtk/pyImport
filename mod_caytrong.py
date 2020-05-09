@@ -2,12 +2,13 @@ import json
 import re
 import io
 import os
+import locale
 import pandas as pd
 import numpy as np
 import config
 
 
-def extract_date(s):
+def get_date(s):
     r1 = re.findall(r"gày ([0-9]+) tháng ([0-9]+) năm ([0-9]+)", s)
     if len(r1) > 0:
         (d, m, y) = r1[0]
@@ -88,7 +89,7 @@ def process(file, postgreSQL_pool):
                 addr = fix_addr(name)
                 if idx == 0:
                     mota2 = addr
-                    fdate = extract_date(df.to_string())
+                    fdate = get_date(df.to_string())
                     continue
                 mota1 = addr
                 col2 = get_col(df)
@@ -127,23 +128,24 @@ def process(file, postgreSQL_pool):
                         "mota2": mota2
                     }, ensure_ascii=False)+"\n")
             except TypeError:
-                return "{f}: Sai định dạng ở sheet {n}".format(f=basename, n=name)
+                return f"{basename}: Sai định dạng ở sheet {name}"
     if count > 0:
         buffer.seek(0)
         conn = postgreSQL_pool.getconn()
         with conn.cursor() as cur:
-            cur.execute("CREATE TEMP TABLE tmp_table ON COMMIT DROP AS \
-                    TABLE {0} WITH NO DATA;".format(config.ext["caytrong"]["table"]))
+            cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
+                        f"TABLE {config.ext['caytrong']['table']} WITH NO DATA")
             cur.copy_from(buffer, "tmp_table")
-            cur.execute("INSERT INTO {0} SELECT * FROM tmp_table \
-                    EXCEPT SELECT * FROM {0};".format(config.ext["caytrong"]["table"]))
+            cur.execute(f"INSERT INTO {config.ext['caytrong']['table']} "
+                        f"SELECT * FROM tmp_table EXCEPT "
+                        f"SELECT * FROM {config.ext['caytrong']['table']};")
             nline = cur.rowcount
         conn.commit()
         postgreSQL_pool.putconn(conn)
         buffer.close()
+        locale.setlocale(locale.LC_ALL, 'vi_VN.utf-8')
         if nline > 0:
-            return "{f}: {n} dòng được thêm \n".format(f=basename, n=nline)
-        return "{f}: Dữ liệu đã có (bỏ qua) \n".format(f=basename)
-
+            return f"{basename}: {nline:n} dòng được thêm \n"
+        return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
     buffer.close()
-    return "{f}: Sai định dạng \n".format(f=basename)
+    return f"{basename}: Sai định dạng \n"
