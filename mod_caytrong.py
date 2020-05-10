@@ -143,7 +143,7 @@ def process(file, postgreSQL_pool):
         conn.commit()
         postgreSQL_pool.putconn(conn)
         buffer.close()
-        locale.setlocale(locale.LC_ALL, 'vi_VN.utf-8')
+        locale.setlocale(locale.LC_ALL, 'de_DE.utf-8')
         if nline > 0:
             return f"{basename}: {nline:n} dòng được thêm \n"
         return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
