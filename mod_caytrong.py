@@ -2,7 +2,6 @@ import json
 import re
 import io
 import os
-import locale
 import pandas as pd
 import numpy as np
 import config
@@ -143,9 +142,8 @@ def process(file, postgreSQL_pool):
         conn.commit()
         postgreSQL_pool.putconn(conn)
         buffer.close()
-        locale.setlocale(locale.LC_ALL, 'de_DE.utf-8')
         if nline > 0:
-            return f"{basename}: {nline:n} dòng được thêm \n"
+            return f"{basename}: {nline:,} dòng được thêm \n"
         return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
     buffer.close()
     return f"{basename}: Sai định dạng \n"
