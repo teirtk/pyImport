@@ -116,8 +116,8 @@ def process(file, postgreSQL_pool):
             df = df.drop(
                 [df.columns.values[4], df.columns.values[7], df.columns.values[11]], axis=1)
             df = df.iloc[first_row+3:, 0:len(columns)+1]
-            df = df.dropna(subset=[df.columns.values[1], df.columns.values[2],
-                                   df.columns.values[3]]).reset_index(drop=True)
+            df = df.dropna(subset=[df.columns.values[1],
+                                   df.columns.values[2]]).reset_index(drop=True)
             df = df.iloc[:, 1:]
             df.columns = columns
             df.iloc[:, 3:] = df.iloc[:, 3:].fillna(0).applymap(
@@ -127,6 +127,10 @@ def process(file, postgreSQL_pool):
                 df[col] = 0
             df["huyen"] = huyen
             df["fdate"] = fdate
+            # Xuất các dòng trùng nhau ra file
+            # df1 = df[df.duplicated(keep="first")]
+            # with open("dup", "w+", encoding="utf8") as f:
+            #     f.write(df1.to_string())
         except TypeError:
             return f"{basename} bị lỗi\n"
         buffer = io.StringIO()
