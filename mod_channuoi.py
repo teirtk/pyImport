@@ -2,6 +2,7 @@
 from datetime import date
 import io
 import os
+import locale
 import re
 import pandas as pd
 import config
@@ -45,7 +46,7 @@ def get_date(s):
         if len(m) == 1:
             m = "0"+m
         return date.fromisoformat(y+"-"+m+"-"+d)
-    r1 = re.findall(r"tháng ([0-9]+) năm ([0-9]+)", s.lower())
+    r1 = re.findall(r"([0-9]+) năm ([0-9]+)", s.lower())
     if len(r1) > 0:
         (m, y) = r1[0]
         if len(m) == 1:
@@ -62,10 +63,32 @@ def get_date(s):
     return None
 
 
+def get_huyen(ds):
+    for _, row in ds.items():
+        for _, value in row.items():
+            if isinstance(value, str):
+                s = value.lower().replace(" tx ", " thị xã ").replace(
+                    " tp ", " thành phố ")
+                arr = s.split(" thời điểm tháng ")
+                if len(arr) < 2:
+                    arr = s.split(" thời điểm ")
+                if len(arr) < 2:
+                    arr = s.split(" tháng ")
+                if len(arr) > 1:
+                    x = get_date(arr[1])
+                    r1 = re.findall(
+                        r'(huyện|thị xã|thành phố) (.+)', arr[0])
+                    if len(r1) > 0:
+                        (p1, p2) = r1[0]
+                        return (p1.capitalize()+' '+p2.title(), x)
+    return (None, None)
+
+
 def process(file, postgreSQL_pool):
     basename = os.path.basename(file)
     count = 0
     fdate = None
+    huyen = None
     dfa = []
     skip = False
     with pd.ExcelFile(file) as xls:
@@ -77,24 +100,23 @@ def process(file, postgreSQL_pool):
                 continue
             dfa.append(df)
             if fdate is None:
-                fdate = get_date(df.head(10).to_string())
+                (huyen, fdate) = get_huyen(df.head(10))
+    if fdate is None:
+        return f"{basename}: Sai định dạng \n"
     for df in dfa:
         try:
             first_row = get_first_row(df)
             if first_row < -1:
                 continue
-            df1 = df.iloc[first_row+2, :]
-            df1 = df.iloc[first_row+1, :].where(df1.isna())
             columns = ["hoten", "ap", "xa", "gade", "gathit", "vitde", "vitthit",
                        "vitxiem", "heonai", "heonoc", "heothit"]
             columns.extend(
                 get_col(df.iloc[first_row+1, :].str.replace(r'\s', '').str.lower()))
             columns.extend(
                 get_col(df.iloc[first_row+2, :].str.replace(r'\s', '').str.lower()))
-
-            df = df.loc[:, ~(df == 'Tổng').any()]
+            df = df.drop(
+                [df.columns.values[4], df.columns.values[7], df.columns.values[11]], axis=1)
             df = df.iloc[first_row+3:, 0:len(columns)+1]
-
             df = df.dropna(subset=[df.columns.values[1], df.columns.values[2],
                                    df.columns.values[3]]).reset_index(drop=True)
             df = df.iloc[:, 1:]
@@ -104,9 +126,10 @@ def process(file, postgreSQL_pool):
             df["hoten"] = df["hoten"].str.strip().str.title()
             for col in [x for x in rep.values() if not x in columns]:
                 df[col] = 0
+            df["huyen"] = huyen
             df["fdate"] = fdate
         except TypeError:
-            return f"{basename} bị lỗi"
+            return f"{basename} bị lỗi\n"
         buffer = io.StringIO()
         df.to_csv(buffer, index=False, line_terminator="\n")
         nline = buffer.getvalue().count('\n')
@@ -127,8 +150,8 @@ def process(file, postgreSQL_pool):
             postgreSQL_pool.putconn(conn)
             buffer.close()
             count += nrow
+    locale.setlocale(locale.LC_ALL, 'vi_VN.utf-8')
     if count > 0:
-        return f"{basename}: {count:,} dòng được thêm \n"
+        return f"{basename}: {count:n} dòng được thêm \n"
     if skip:
         return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
-    return f"{basename}: Sai định dạng \n"

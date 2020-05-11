@@ -3,6 +3,7 @@ from datetime import date
 import re
 import os
 import io
+import locale
 import pandas as pd
 import config
 
@@ -77,8 +78,9 @@ def process(file, postgreSQL_pool):
                 conn.commit()
                 postgreSQL_pool.putconn(conn)
                 buffer.close()
+                locale.setlocale(locale.LC_ALL, 'vi_VN.utf-8')
                 if nrow > 0:
-                    return f"{basename}: {nrow:,} dòng được thêm \n"
+                    return f"{basename}: {nrow:n} dòng được thêm \n"
                 return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
         buffer.close()
         return f"{basename}: Sai định dạng \n"

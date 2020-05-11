@@ -36,6 +36,6 @@ ext = {
             numeric,vitde numeric,vitthit numeric,vitxiem numeric,heonai numeric,
             heonoc numeric,heothit numeric,trau numeric,bo numeric,cho numeric,
             meo numeric,ngong numeric,tho numeric, decuu numeric, cut numeric,bocaucudat numeric,
-                fdate date NOT NULL);"""
+                huyen character varying(100), fdate date NOT NULL);"""
     }
 }
