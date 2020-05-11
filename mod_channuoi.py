@@ -2,7 +2,6 @@
 from datetime import date
 import io
 import os
-import locale
 import re
 import pandas as pd
 import config
@@ -150,8 +149,7 @@ def process(file, postgreSQL_pool):
             postgreSQL_pool.putconn(conn)
             buffer.close()
             count += nrow
-    locale.setlocale(locale.LC_ALL, 'vi_VN.utf-8')
     if count > 0:
-        return f"{basename}: {count:n} dòng được thêm \n"
+        return f"{basename}: {count:,} dòng được thêm \n"
     if skip:
         return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
