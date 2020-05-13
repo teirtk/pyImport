@@ -1,23 +1,19 @@
 import os
 import glob
-import importlib
-import pkgutil
-from flask import Flask, render_template, request, make_response
+import atexit
+from flask import Flask, g, render_template, request, make_response
 from waitress import serve
-from psycopg2 import pool
 import config
 
 app = Flask(__name__)
 app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
-postgreSQL_pool = pool.ThreadedConnectionPool(
-    1, 10, database=config.db["db"], user=config.db["user"],
-    password=config.db["passwd"], host=config.db["host"], port=config.db["port"])
+postgreSQL_pool = config.pgPool
 
 
-def __init__():
+def init():
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'])
     except FileExistsError:
@@ -25,13 +21,36 @@ def __init__():
     for file in glob.glob(app.config['UPLOAD_FOLDER']+'/*'):
         if os.path.isfile(file):
             os.unlink(file)
-
     conn = postgreSQL_pool.getconn()
-    cur = conn.cursor()
-    for idx in config.ext:
-        cur.execute(config.ext[idx]["sql"])
-        conn.commit()
+    with conn.cursor() as cur:
+        for idx in config.ext:
+            cur.execute(config.ext[idx]["sql"])
+            conn.commit()
     postgreSQL_pool.putconn(conn)
+
+
+def get_db():
+    if 'db' not in g:
+        g.db = postgreSQL_pool.getconn()
+    return g.db
+
+
+@atexit.register
+def onexit():
+    if postgreSQL_pool:
+        postgreSQL_pool.closeall()
+
+
+@app.teardown_appcontext
+def close_conn(e=None):
+    db = g.pop('db', None)
+    if db is None:
+        return
+    if e is None:
+        db.commit()
+    else:
+        db.rollback()
+    postgreSQL_pool.putconn(db)
 
 
 @app.route('/')
@@ -80,7 +99,7 @@ def upload_file(modname):
                   f"Was {os.path.getsize(save_path)} but we"
                   f" expected {request.form['dztotalfilesize']} ")
             return make_response(('Size mismatch', 500))
-        result = plugins[modname].process(save_path, postgreSQL_pool)
+        result = config.plugins[modname].process(save_path, get_db())
         os.unlink(save_path)
         return make_response(result, 200)
 
@@ -88,13 +107,5 @@ def upload_file(modname):
 
 
 if __name__ == "__main__":
-    plugins = {
-        name: importlib.import_module(name)
-        for finder, name, ispkg
-        in pkgutil.iter_modules()
-        if name.startswith("mod_")
-    }
-    __init__()
+    init()
     serve(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
-    if postgreSQL_pool:
-        postgreSQL_pool.closeall()

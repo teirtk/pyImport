@@ -44,13 +44,13 @@ def get_date(s):
             d = "0"+d
         if len(m) == 1:
             m = "0"+m
-        return date.fromisoformat(y+"-"+m+"-"+d)
+        return date.fromisoformat(f"{y}-{m}-{d}")
     r1 = re.findall(r"([0-9]+) năm ([0-9]+)", s.lower())
     if len(r1) > 0:
         (m, y) = r1[0]
         if len(m) == 1:
             m = "0"+m
-        return date.fromisoformat(y+"-"+m+"-01")
+        return date.fromisoformat(f"{y}-{m}-01")
     r1 = re.findall(r"([0-9]+)\/([0-9]+) năm ([0-9]+)", s.lower())
     if len(r1) > 0:
         (d, m, y) = r1[0]
@@ -58,7 +58,7 @@ def get_date(s):
             d = "0"+d
         if len(m) == 1:
             m = "0"+m
-        return date.fromisoformat(y+"-"+m+"-01")
+        return date.fromisoformat(f"{y}-{m}-{d}")
     return None
 
 
@@ -79,11 +79,11 @@ def get_huyen(ds):
                         r'(huyện|thị xã|thành phố) (.+)', arr[0])
                     if len(r1) > 0:
                         (p1, p2) = r1[0]
-                        return (p1.capitalize()+' '+p2.title(), x)
+                        return (f"{p1.capitalize()} {p2.title()}", x)
     return (None, None)
 
 
-def process(file, postgreSQL_pool):
+def process(file, conn):
     basename = os.path.basename(file)
     count = 0
     fdate = None
@@ -139,10 +139,9 @@ def process(file, postgreSQL_pool):
         if nline > 1:
             skip = True
             buffer.seek(0)
-            conn = postgreSQL_pool.getconn()
             with conn.cursor() as cur:
                 cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
-                            f"(SELECT * FROM {config.ext['channuoi']['table']} LIMIT 0);")
+                            f"TABLE {config.ext['channuoi']['table']} WITH NO DATA;")
                 cur.copy_expert(
                     "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
                 cur.execute(f"INSERT INTO {config.ext['channuoi']['table']} "
@@ -150,7 +149,6 @@ def process(file, postgreSQL_pool):
                             f"SELECT * FROM {config.ext['channuoi']['table']};")
                 nrow = cur.rowcount
                 conn.commit()
-            postgreSQL_pool.putconn(conn)
             buffer.close()
             count += nrow
     if count > 0:

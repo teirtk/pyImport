@@ -144,7 +144,7 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <textarea class="form-control" id="history" rows="7"></textarea>
+                <textarea class="form-control" id="history" rows="7" readonly></textarea>
             </div>
         </div>
     </div>
@@ -172,6 +172,7 @@
             total = Math.round(total)
             progressBar.style.width = total + '%'
         }
+
         let myDropzone = new Dropzone("div#my-dropzone", {
             method: "POST",
             url: "/upload/",
@@ -184,11 +185,6 @@
             forceChunking: true,
             maxFilesize: 1025, // megabytes
             chunkSize: 5000000, // bytes
-            init: function () {
-                this.on("addedfile", function (file) {
-
-                });
-            },
             addedfile: function (file) {
                 this.options.url = "/upload/mod_" + document.querySelector("input[name=format]:checked").value;
                 uploadProgress[file.upload.uuid] = 0
@@ -201,8 +197,9 @@
                 var args = Array.prototype.slice.call(arguments);
                 document.getElementById("history").value = args[0].xhr.responseText + document.getElementById("history").value
             },
-            reset: function () {
+            queuecomplete: function () {
                 uploadProgress = []
+                progressBar.style.width = '0%'
             }
         });
         Dropzone.options.myDropzone = false;

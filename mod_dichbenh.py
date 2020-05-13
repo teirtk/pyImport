@@ -1,4 +1,3 @@
-
 from datetime import date
 import re
 import os
@@ -22,7 +21,7 @@ rep = {"TX ": "Thị xã ",
        "TP ": "Thành phố "}
 
 
-def process(file, postgreSQL_pool):
+def process(file, conn):
     basename = os.path.basename(file)
     with pd.ExcelFile(file) as xls:
         try:
@@ -58,13 +57,12 @@ def process(file, postgreSQL_pool):
                            "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '')
                                                                   if isinstance(x, str) else x)
         except TypeError:
-            return f"{basename} bị lỗi"
+            return f"{basename} bị lỗi\n"
         buffer = io.StringIO()
         df.to_csv(buffer, index=False)
         nline = buffer.getvalue().count('\n')
         if nline > 1:
             buffer.seek(0)
-            conn = postgreSQL_pool.getconn()
             with conn.cursor() as cur:
                 cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
                             f"TABLE {config.ext['dichbenh']['table']} WITH NO DATA;")
@@ -75,7 +73,6 @@ def process(file, postgreSQL_pool):
                             f"SELECT * FROM {config.ext['dichbenh']['table']};")
                 nrow = cur.rowcount
                 conn.commit()
-                postgreSQL_pool.putconn(conn)
                 buffer.close()
                 if nrow > 0:
                     return f"{basename}: {nrow:,} dòng được thêm \n"

@@ -1,4 +1,7 @@
 import os
+import importlib
+import pkgutil
+from psycopg2 import pool
 if 'PORT' in os.environ:
   # elephantsql
     db = {
@@ -38,4 +41,13 @@ ext = {
             meo numeric,ngong numeric,tho numeric, decuu numeric, cut numeric,bocaucudat numeric,
                 huyen character varying(100), fdate date NOT NULL);"""
     }
+}
+pgPool = pool.ThreadedConnectionPool(
+    1, 10, database=db["db"], user=db["user"],
+    password=db["passwd"], host=db["host"], port=db["port"])
+plugins = {
+    name: importlib.import_module(name)
+    for finder, name, ispkg
+    in pkgutil.iter_modules()
+    if name.startswith("mod_")
 }

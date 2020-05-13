@@ -12,28 +12,28 @@ def get_date(s):
     if len(r1) > 0:
         (d, m, y) = r1[0]
         if len(d) == 1:
-            d = "0"+d
+            d = f"0{d}"
         if len(m) == 1:
-            m = "0"+m
-        return y+"-"+m+"-"+d
+            m = f"0{m}"
+        return f"{y}-{m}-{d}"
     return ''
 
 
 def fix_addr(s):
     if s.startswith("TX "):
-        s = "Thị xã "+s[3:].title()
+        s = f"Thị xã {s[3:].title()}"
     elif s.startswith("TT "):
-        s = "Thị trấn " + s[3:].title()
+        s = f"Thị trấn {s[3:].title()}"
     elif s.startswith("TT. "):
-        s = "Thị trấn " + s[4:].title()
+        s = f"Thị trấn {s[4:].title()}"
     elif s.startswith("TP "):
-        s = "Thành phố " + s[3:].title()
+        s = f"Thành phố {s[3:].title()}"
     elif re.match("huyện ", s, re.I):
         s = s.title()
     elif s.startswith("P "):
-        s = "Phường " + s[2:].title()
+        s = f"Phường {s[2:].title()}"
     else:
-        s = "Xã " + s.title()
+        s = f"Xã {s.title()}"
     return s.strip()
 
 
@@ -75,7 +75,7 @@ rep = {"Cây Lúa": "Lúa",
        r"^Khác \(.*": "Khác"}
 
 
-def process(file, postgreSQL_pool):
+def process(file, conn):
     basename = os.path.basename(file)
     buffer = io.StringIO()
     count = 0
@@ -121,16 +121,15 @@ def process(file, postgreSQL_pool):
                     buffer.write(json.dumps({
                         "nhom": nhom,
                         "chuyenmuc": str(chuyenmuc),
-                        "thuoctinh": json.loads("{"+str(thuoctinh)+"}"),
+                        "thuoctinh": json.loads(f"{{{str(thuoctinh)}}}"),
                         "fdate": fdate,
                         "mota1": mota1,
                         "mota2": mota2
                     }, ensure_ascii=False)+"\n")
             except TypeError:
-                return f"{basename}: Sai định dạng ở sheet {name}"
+                return f"{basename}: Sai định dạng ở sheet {name}\n"
     if count > 0:
         buffer.seek(0)
-        conn = postgreSQL_pool.getconn()
         with conn.cursor() as cur:
             cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
                         f"TABLE {config.ext['caytrong']['table']} WITH NO DATA")
@@ -140,7 +139,6 @@ def process(file, postgreSQL_pool):
                         f"SELECT * FROM {config.ext['caytrong']['table']};")
             nline = cur.rowcount
         conn.commit()
-        postgreSQL_pool.putconn(conn)
         buffer.close()
         if nline > 0:
             return f"{basename}: {nline:,} dòng được thêm \n"
