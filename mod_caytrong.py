@@ -15,19 +15,18 @@ def get_date(s):
             d = f"0{d}"
         if len(m) == 1:
             m = f"0{m}"
-        if d < "05":
+        if d <= "05":
             d = "05"
-        elif d < "15":
+        elif d <= "15":
             d = "15"
-        elif d < "25":
+        elif d <= "25":
             d = "25"
         else:
             d = "05"
             rdate = date.fromisoformat(f"{y}-{m}-{d}")
             return rdate+timedelta(months=1)
         return date.fromisoformat(f"{y}-{m}-{d}")
-
-    return ''
+    return None
 
 
 def fix_addr(s):
@@ -100,15 +99,15 @@ def process(file, conn):
                 if idx == 0:
                     mota2 = addr
                     fdate = get_date(df.head(20).to_string())
+                    if fdate is None:
+                        return f"{basename}: Không lấy được ngày tháng \n"
                     continue
                 mota1 = addr
                 col2 = get_col(df)
                 df = df.reindex(
                     ["Unnamed: 1", col2], axis="columns")
                 df = df.loc[get_first_row(df['Unnamed: 1']):, :]
-
-                df = df.dropna(subset=["Unnamed: 1"]
-                               ).reset_index(drop=True)
+                df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
                 df['Unnamed: 1'] = df['Unnamed: 1'].replace(
                     rep, regex=True).str.strip()
                 df[col2] = df[col2].astype(str).replace(
@@ -116,8 +115,8 @@ def process(file, conn):
                 df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ')]
                 df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)
                 df[col2] = pd.to_numeric(df[col2], errors='coerce')
-                df['nhom'] = df['Unnamed: 1'].str.strip().where(df['Unnamed: 1'].isin(
-                    keyword) & ~df['dup'], np.nan).fillna(method='ffill')
+                df['nhom'] = df['Unnamed: 1'].str.strip().where(
+                    df['Unnamed: 1'].isin(keyword) & ~df['dup'], np.nan).fillna(method='ffill')
                 df['thuoctinhlb'] = df['Unnamed: 1'].where(
                     ~df['dup']).fillna(method='ffill')
                 df = df[~df['thuoctinhlb'].astype(
@@ -136,7 +135,6 @@ def process(file, conn):
                 dfp.to_csv(buffer, header=header)
                 if header:
                     header = False
-
             except TypeError:
                 return f"{basename}: Sai định dạng ở sheet {name}\n"
     if buffer.getvalue().count('\n') > 1:

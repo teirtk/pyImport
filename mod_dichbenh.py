@@ -11,7 +11,7 @@ def get_date(s, getdate):
         if getdate:
             r1 = re.findall(r"([0-9]+) năm ([0-9]+)", s)
         else:
-            r1 = re.findall(r"([0-9]+) -  ([0-9]+)", str(s))
+            r1 = re.findall(r"([0-9]+) -  ([0-9]+)", s)
         if len(r1) > 0:
             return r1[0]
     return (s,)
@@ -57,24 +57,24 @@ def process(file, conn):
                            "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '')
                                                                   if isinstance(x, str) else x)
         except TypeError:
-            return f"{basename} bị lỗi\n"
-        buffer = io.StringIO()
-        df.to_csv(buffer, index=False)
-        if buffer.getvalue().count('\n') > 1:
-            buffer.seek(0)
-            with conn.cursor() as cur:
-                cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
-                            f"TABLE {config.ext['dichbenh']['table']} WITH NO DATA;")
-                cur.copy_expert(
-                    "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
-                cur.execute(f"INSERT INTO {config.ext['dichbenh']['table']} "
-                            f"SELECT * FROM tmp_table EXCEPT "
-                            f"SELECT * FROM {config.ext['dichbenh']['table']};")
-                nrow = cur.rowcount
-                conn.commit()
-                buffer.close()
-                if nrow > 0:
-                    return f"{basename}: {nrow:,} dòng được thêm \n"
-                return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
-        buffer.close()
-        return f"{basename}: Sai định dạng \n"
+            return f"{basename}: Sai định dạng\n"
+    buffer = io.StringIO()
+    df.to_csv(buffer, index=False)
+    if buffer.getvalue().count('\n') > 1:
+        buffer.seek(0)
+        with conn.cursor() as cur:
+            cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
+                        f"TABLE {config.ext['dichbenh']['table']} WITH NO DATA;")
+            cur.copy_expert(
+                "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
+            cur.execute(f"INSERT INTO {config.ext['dichbenh']['table']} "
+                        f"SELECT * FROM tmp_table EXCEPT "
+                        f"SELECT * FROM {config.ext['dichbenh']['table']};")
+            nrow = cur.rowcount
+            conn.commit()
+            buffer.close()
+            if nrow > 0:
+                return f"{basename}: {nrow:,} dòng được thêm \n"
+            return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
+    buffer.close()
+    return f"{basename}: Sai định dạng \n"
