@@ -135,8 +135,7 @@ def process(file, conn):
             return f"{basename} bị lỗi\n"
         buffer = io.StringIO()
         df.to_csv(buffer, index=False, line_terminator="\n")
-        nline = buffer.getvalue().count('\n')
-        if nline > 1:
+        if buffer.getvalue().count('\n') > 1:
             skip = True
             buffer.seek(0)
             with conn.cursor() as cur:

@@ -23,14 +23,16 @@ ext = {
     "dichbenh": {
         "table": "dichbenh",
         "sql": """CREATE TABLE IF NOT EXISTS dichbenh (loai character varying(20),
-        nhom character varying(20),svgh character varying(50),gdst character varying(100),
-        dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,
-        dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(200),fdate date NOT NULL,
-        tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);"""
+            nhom character varying(20),svgh character varying(50),gdst character varying(100),
+            dtnhiemnhe numeric,dtnhiemtb numeric,dtnhiemnang numeric,dttong numeric,dtmattrang numeric,
+            dtsokytruoc numeric,dtphongtru numeric,phanbo character varying(200),fdate date NOT NULL,
+            tdate date NOT NULL,mdpb1 numeric,mdpb2 numeric,mdcao1 numeric,mdcao2 numeric);"""
     },
     "caytrong": {
         "table": "caytrong",
-        "sql": "CREATE TABLE IF NOT EXISTS caytrong (data jsonb);"
+        "sql": """CREATE TABLE IF NOT EXISTS caytrong (nhom character varying(30),
+            chuyenmuc character varying(30), thuoctinh jsonb, fdate date NOT NULL, 
+            mota1 character varying(30), mota2 character varying(30));"""
     },
     "channuoi": {
         "table": "channuoi",

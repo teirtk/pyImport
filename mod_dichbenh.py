@@ -60,8 +60,7 @@ def process(file, conn):
             return f"{basename} bị lỗi\n"
         buffer = io.StringIO()
         df.to_csv(buffer, index=False)
-        nline = buffer.getvalue().count('\n')
-        if nline > 1:
+        if buffer.getvalue().count('\n') > 1:
             buffer.seek(0)
             with conn.cursor() as cur:
                 cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "

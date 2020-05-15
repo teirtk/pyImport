@@ -103,7 +103,7 @@ def upload_file(modname):
         os.unlink(save_path)
         return make_response(result, 200)
 
-    return make_response(("Chunk upload successful "+modname, 200))
+    return make_response((f"Chunk upload successful {modname}", 200))
 
 
 if __name__ == "__main__":

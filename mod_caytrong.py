@@ -1,7 +1,7 @@
-import json
 import re
 import io
 import os
+from datetime import timedelta, date
 import pandas as pd
 import numpy as np
 import config
@@ -15,7 +15,18 @@ def get_date(s):
             d = f"0{d}"
         if len(m) == 1:
             m = f"0{m}"
-        return f"{y}-{m}-{d}"
+        if d < "05":
+            d = "05"
+        elif d < "15":
+            d = "15"
+        elif d < "25":
+            d = "25"
+        else:
+            d = "05"
+            rdate = date.fromisoformat(f"{y}-{m}-{d}")
+            return rdate+timedelta(months=1)
+        return date.fromisoformat(f"{y}-{m}-{d}")
+
     return ''
 
 
@@ -78,7 +89,7 @@ rep = {"Cây Lúa": "Lúa",
 def process(file, conn):
     basename = os.path.basename(file)
     buffer = io.StringIO()
-    count = 0
+    header = True
     with pd.ExcelFile(file) as xls:
         for idx, name in enumerate(xls.sheet_names):
             try:
@@ -88,7 +99,7 @@ def process(file, conn):
                 addr = fix_addr(name)
                 if idx == 0:
                     mota2 = addr
-                    fdate = get_date(df.to_string())
+                    fdate = get_date(df.head(20).to_string())
                     continue
                 mota1 = addr
                 col2 = get_col(df)
@@ -99,41 +110,42 @@ def process(file, conn):
                 df = df.dropna(subset=["Unnamed: 1"]
                                ).reset_index(drop=True)
                 df['Unnamed: 1'] = df['Unnamed: 1'].replace(
-                    rep, regex=True)
+                    rep, regex=True).str.strip()
                 df[col2] = df[col2].astype(str).replace(
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
                 df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ')]
                 df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)
                 df[col2] = pd.to_numeric(df[col2], errors='coerce')
-                df['nhom'] = df['Unnamed: 1'].where(df['Unnamed: 1'].isin(
+                df['nhom'] = df['Unnamed: 1'].str.strip().where(df['Unnamed: 1'].isin(
                     keyword) & ~df['dup'], np.nan).fillna(method='ffill')
-                df['chuyenmuc'] = df['Unnamed: 1'].where(
+                df['thuoctinhlb'] = df['Unnamed: 1'].where(
                     ~df['dup']).fillna(method='ffill')
-                df = df[~df['chuyenmuc'].astype(
+                df = df[~df['thuoctinhlb'].astype(
                     str).str.contains('Cây Rau, Màu', na=False)]
                 df = df[df['dup'] & df[col2].astype(float).gt(0)]
                 df[col2] = df[col2].round(2).apply(str)
-                df['thuoctinh'] = '"'+df['chuyenmuc'] + '":'+df[col2]
-                dfp = df.groupby(["nhom", "Unnamed: 1"]).agg(
+                df['thuoctinh'] = '"' + \
+                    df['thuoctinhlb'].apply(str).str.strip() + '":'+df[col2]
+                df.rename(columns={"Unnamed: 1": 'chuyenmuc'}, inplace=True)
+                dfp = df.groupby(["nhom", "chuyenmuc"]).agg(
                     {"thuoctinh": ",".join})
-                for nhom, chuyenmuc, thuoctinh in dfp.to_records():
-                    count += 1
-                    buffer.write(json.dumps({
-                        "nhom": nhom,
-                        "chuyenmuc": str(chuyenmuc),
-                        "thuoctinh": json.loads(f"{{{str(thuoctinh)}}}"),
-                        "fdate": fdate,
-                        "mota1": mota1,
-                        "mota2": mota2
-                    }, ensure_ascii=False)+"\n")
+                dfp['thuoctinh'] = "{"+dfp['thuoctinh']+"}"
+                dfp["fdate"] = fdate
+                dfp["mota1"] = mota1
+                dfp["mota2"] = mota2
+                dfp.to_csv(buffer, header=header)
+                if header:
+                    header = False
+
             except TypeError:
                 return f"{basename}: Sai định dạng ở sheet {name}\n"
-    if count > 0:
+    if buffer.getvalue().count('\n') > 1:
         buffer.seek(0)
         with conn.cursor() as cur:
             cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
                         f"TABLE {config.ext['caytrong']['table']} WITH NO DATA")
-            cur.copy_from(buffer, "tmp_table")
+            cur.copy_expert(
+                "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
             cur.execute(f"INSERT INTO {config.ext['caytrong']['table']} "
                         f"SELECT * FROM tmp_table EXCEPT "
                         f"SELECT * FROM {config.ext['caytrong']['table']};")
