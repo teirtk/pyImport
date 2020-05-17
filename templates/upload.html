@@ -197,6 +197,13 @@
                 var args = Array.prototype.slice.call(arguments);
                 document.getElementById("history").value = args[0].xhr.responseText + document.getElementById("history").value
             },
+            sending: function (file, xhr, formData) {
+                /*Called just before each file is sent*/
+                xhr.ontimeout = (() => {
+                    /*Execute on case of timeout only*/
+                    console.log('Server Timeout')
+                });
+            },
             queuecomplete: function () {
                 uploadProgress = []
                 progressBar.style.width = '0%'
