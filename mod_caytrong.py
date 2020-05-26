@@ -4,6 +4,7 @@ import os
 from datetime import timedelta, date
 import pandas as pd
 import numpy as np
+from xlrd import XLRDError
 import config
 
 
@@ -108,11 +109,11 @@ def process(file, conn):
                     ["Unnamed: 1", col2], axis="columns")
                 df = df.loc[get_first_row(df['Unnamed: 1']):, :]
                 df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
-                df['Unnamed: 1'] = df['Unnamed: 1'].replace(
+                df['Unnamed: 1'] = df['Unnamed: 1'].astype(str).replace(
                     rep, regex=True).str.strip()
                 df[col2] = df[col2].astype(str).replace(
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
-                df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ')]
+                df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ', na=False)]
                 df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)
                 df[col2] = pd.to_numeric(df[col2], errors='coerce')
                 df['nhom'] = df['Unnamed: 1'].str.strip().where(
@@ -135,8 +136,10 @@ def process(file, conn):
                 dfp.to_csv(buffer, header=header)
                 if header:
                     header = False
-            except TypeError:
-                return f"{basename}: Sai định dạng ở sheet {name}\n"
+            except XLRDError:
+                return f"{basename}: bị protect\n"
+            #except TypeError:
+                #return f"{basename}: Sai định dạng ở sheet {name}\n"
     if buffer.getvalue().count('\n') > 1:
         buffer.seek(0)
         with conn.cursor() as cur:

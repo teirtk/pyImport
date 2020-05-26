@@ -176,6 +176,7 @@
         let myDropzone = new Dropzone("div#my-dropzone", {
             method: "POST",
             url: "/upload/",
+            timeout: 180000,
             acceptedFiles: "application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             paramName: "file", // The name that will be used to transfer the file
             clickable: document.getElementById("upload-btn"),
