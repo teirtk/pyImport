@@ -106,8 +106,8 @@ def process(file, conn):
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
                 df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ', na=False)]
                 df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)
-                mask = df['Unnamed: 1'].str.contains(r'Đậu các loại', na=True)
-                df.loc[mask, 'dup'] = False
+                df.loc[df['Unnamed: 1'].str.contains(
+                    r'Đậu các loại', na=True), 'dup'] = False
                 df[col2] = pd.to_numeric(
                     df[col2], errors='coerce').round(2).apply(str)
                 df['nhom'] = df['Unnamed: 1'].str.strip().where(
@@ -120,8 +120,6 @@ def process(file, conn):
                 df['thuoctinh'] = '"' + \
                     df['thuoctinhlb'].apply(str).str.strip() + '":'+df[col2]
                 df.rename(columns={"Unnamed: 1": 'chuyenmuc'}, inplace=True)
-                with open("data", "a+", encoding="utf8") as f:
-                    f.write(df.to_string())
                 df["nhom"] = df["nhom"].apply(str).replace({'Đậu Xanh': 'Đậu'})
                 dfp = df.groupby(["nhom", "chuyenmuc"]).agg(
                     {"thuoctinh": ",".join})
