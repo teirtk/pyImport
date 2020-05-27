@@ -4,7 +4,7 @@ import os
 from datetime import timedelta, date
 import pandas as pd
 import numpy as np
-from xlrd import XLRDError
+from xlrd import biffh
 import config
 
 
@@ -30,13 +30,14 @@ def get_date(s):
     return None
 
 
-def fix_addr(text):
-    rep = {".":"","Tx ": "Thị xã ", "Tp ": "Thành phố ",
-           "Tt ": "Thị trấn ", "H ": "Huyện ", "P ": "Phường "}
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile("|".join(rep.keys()))
-    return pattern.sub(lambda m: rep[re.escape(m.group(0))], text.title().strip())
-    
+def fix_addr(s):
+    mota_dict = {"Tx ": "Thị xã ", "Tp ": "Thành phố ", "Ghâu": "Châu",
+                 "Tt ": "Thị trấn ", "H ": "Huyện ", "P ": "Phường "}
+    mota_dict = dict((re.escape(k), v) for k, v in mota_dict.items())
+    pattern = re.compile("|".join(mota_dict.keys()))
+    s = s.title().strip().replace(".", "")
+    s = pattern.sub(lambda m: mota_dict[re.escape(m.group(0))], s)
+    return s
 
 
 def get_col(df):
@@ -80,9 +81,9 @@ def process(file, conn):
     basename = os.path.basename(file)
     buffer = io.StringIO()
     header = True
-    with pd.ExcelFile(file) as xls:
-        for idx, name in enumerate(xls.sheet_names):
-            try:
+    try:
+        with pd.ExcelFile(file) as xls:
+            for idx, name in enumerate(xls.sheet_names):
                 if name.startswith("Sheet") or name.startswith("Compa"):
                     continue
                 df = pd.read_excel(xls, sheet_name=name, encoding='utf-16le')
@@ -105,7 +106,8 @@ def process(file, conn):
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
                 df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ', na=False)]
                 df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)
-                df[col2] = pd.to_numeric(df[col2], errors='coerce')
+                df[col2] = pd.to_numeric(
+                    df[col2], errors='coerce').round(2).apply(str)
                 df['nhom'] = df['Unnamed: 1'].str.strip().where(
                     df['Unnamed: 1'].isin(keyword) & ~df['dup'], np.nan).fillna(method='ffill')
                 df['thuoctinhlb'] = df['Unnamed: 1'].where(
@@ -113,12 +115,11 @@ def process(file, conn):
                 df = df[~df['thuoctinhlb'].astype(
                     str).str.contains('Cây Rau, Màu', na=False)]
                 df = df[df['dup'] & df[col2].astype(float).gt(0)]
-                df[col2] = df[col2].round(2).apply(str)
                 df['thuoctinh'] = '"' + \
                     df['thuoctinhlb'].apply(str).str.strip() + '":'+df[col2]
                 df.rename(columns={"Unnamed: 1": 'chuyenmuc'}, inplace=True)
 
-                df["nhom"] = df["nhom"].replace({'Đậu Xanh': 'Đậu'})
+                df["nhom"] = df["nhom"].apply(str).replace({'Đậu Xanh': 'Đậu'})
                 dfp = df.groupby(["nhom", "chuyenmuc"]).agg(
                     {"thuoctinh": ",".join})
                 dfp['thuoctinh'] = "{"+dfp['thuoctinh']+"}"
@@ -128,10 +129,10 @@ def process(file, conn):
                 dfp.to_csv(buffer, header=header)
                 if header:
                     header = False
-            except XLRDError:
-                return f"{basename}: bị protect\n"
-            # except TypeError:
-                # return f"{basename}: Sai định dạng ở sheet {name}\n"
+    except biffh.XLRDError:
+        return f"{basename}: bị bảo vệ\n"
+    except TypeError:
+        return f"{basename}: Sai định dạng ở sheet {name}\n"
     if buffer.getvalue().count('\n') > 1:
         buffer.seek(0)
         with conn.cursor() as cur:
