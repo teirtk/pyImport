@@ -60,14 +60,6 @@ def upload_form():
 
 @app.route('/upload/<modname>', methods=['POST'])
 def upload_file(modname):
-
-    # file = request.files['file']
-    # _, file_extension = os.path.splitext(file.filename)
-    # if file_extension.lower() in ALLOWED_EXTENSIONS:
-    #     filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    #     file.save(filename)
-    #     return plugins[modname].process(filename, postgreSQL_pool)
-    # return "Tập tin sai định dạng\n"
     file = request.files['file']
 
     save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
