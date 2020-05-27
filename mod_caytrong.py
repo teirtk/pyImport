@@ -30,22 +30,13 @@ def get_date(s):
     return None
 
 
-def fix_addr(s):
-    if s.startswith("TX "):
-        s = f"Thị xã {s[3:].title()}"
-    elif s.startswith("TT "):
-        s = f"Thị trấn {s[3:].title()}"
-    elif s.startswith("TT. "):
-        s = f"Thị trấn {s[4:].title()}"
-    elif s.startswith("TP "):
-        s = f"Thành phố {s[3:].title()}"
-    elif re.match("huyện ", s, re.I):
-        s = s.title()
-    elif s.startswith("P "):
-        s = f"Phường {s[2:].title()}"
-    else:
-        s = f"Xã {s.title()}"
-    return s.strip()
+def fix_addr(text):
+    rep = {".":"","Tx ": "Thị xã ", "Tp ": "Thành phố ",
+           "Tt ": "Thị trấn ", "H ": "Huyện ", "P ": "Phường "}
+    rep = dict((re.escape(k), v) for k, v in rep.items())
+    pattern = re.compile("|".join(rep.keys()))
+    return pattern.sub(lambda m: rep[re.escape(m.group(0))], text.title().strip())
+    
 
 
 def get_col(df):
@@ -81,8 +72,7 @@ rep = {"Cây Lúa": "Lúa",
        " tấn/ha": "",
        " vụ/năm": "",
        r" \(ha\)": "",
-       " 2015-2016": "",
-       " 2015 -2016": "",
+       r"\s*\d{4}\s*-\s*\d{4}\s*": "",
        r"^Khác \(.*": "Khác"}
 
 
@@ -109,7 +99,7 @@ def process(file, conn):
                     ["Unnamed: 1", col2], axis="columns")
                 df = df.loc[get_first_row(df['Unnamed: 1']):, :]
                 df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
-                df['Unnamed: 1'] = df['Unnamed: 1'].astype(str).replace(
+                df['Unnamed: 1'] = df['Unnamed: 1'].apply(str).replace(
                     rep, regex=True).str.strip()
                 df[col2] = df[col2].astype(str).replace(
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
@@ -127,6 +117,8 @@ def process(file, conn):
                 df['thuoctinh'] = '"' + \
                     df['thuoctinhlb'].apply(str).str.strip() + '":'+df[col2]
                 df.rename(columns={"Unnamed: 1": 'chuyenmuc'}, inplace=True)
+
+                df["nhom"] = df["nhom"].replace({'Đậu Xanh': 'Đậu'})
                 dfp = df.groupby(["nhom", "chuyenmuc"]).agg(
                     {"thuoctinh": ",".join})
                 dfp['thuoctinh'] = "{"+dfp['thuoctinh']+"}"
@@ -138,8 +130,8 @@ def process(file, conn):
                     header = False
             except XLRDError:
                 return f"{basename}: bị protect\n"
-            #except TypeError:
-                #return f"{basename}: Sai định dạng ở sheet {name}\n"
+            # except TypeError:
+                # return f"{basename}: Sai định dạng ở sheet {name}\n"
     if buffer.getvalue().count('\n') > 1:
         buffer.seek(0)
         with conn.cursor() as cur:
