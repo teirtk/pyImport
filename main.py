@@ -286,7 +286,7 @@ def upload_file(modname):
     current_chunk = int(request.form['dzchunkindex'])
 
     try:
-        with open(save_path, 'w+b') as f:
+        with open(save_path, 'ab') as f:
             f.seek(int(request.form['dzchunkbyteoffset']))
             f.write(file.stream.read())
     except OSError:
@@ -304,14 +304,17 @@ def upload_file(modname):
                   f"but has a size mismatch."
                   f"Was {os.path.getsize(save_path)} but we"
                   f" expected {request.form['dztotalfilesize']} ")
+            os.unlink(save_path)
             return make_response(('Size mismatch', 500))
+        result = "Sai định dạng"
         if modname == "caytrong":
-            return make_response(caytrong.process(save_path, get_db()), 200)
+            result = make_response(caytrong.process(save_path, get_db()), 200)
         elif modname == "channuoi":
-            return make_response(channuoi.process(save_path, get_db()), 200)
+            result = make_response(channuoi.process(save_path, get_db()), 200)
         elif modname == "dichbenh":
-            return make_response(dichbenh.process(save_path, get_db()), 200)
-        return make_response("Sai định dạng", 200)
+            result = make_response(dichbenh.process(save_path, get_db()), 200)
+        os.unlink(save_path)
+        return make_response(result, 200)
 
     return make_response((f"Chunk upload successful {modname}", 200))
 
