@@ -258,9 +258,8 @@ async def upload_form():
 @app.post('/upload/{modname}', response_class=PlainTextResponse)
 async def upload_file(modname, file: UploadFile = File(...), dzchunkindex: int = Form(...), dztotalfilesize: int = Form(...), dzchunkbyteoffset: int = Form(...), dztotalchunkcount: int = Form(...)):
 
-    save_path = os.path.join(tmpDir, file.filename)
+    save_path = file.filename
     current_chunk = dzchunkindex
-
     try:
         with open(save_path, 'ab') as f:
             f.seek(dzchunkbyteoffset)
@@ -286,6 +285,6 @@ async def upload_file(modname, file: UploadFile = File(...), dzchunkindex: int =
             elif modname == "dichbenh":
                 result = dichbenh.process(save_path, postgreSQL_pool)
         finally:
-            save_path.unlink()
+            os.unlink(save_path)
         return result
     return f"Chunk upload successful {modname}"

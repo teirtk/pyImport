@@ -13,7 +13,7 @@ if 'PORT' in os.environ:
     }
 else:
     db = {
-        "host": "192.168.1.114",
+        "host": "192.168.1.100",
         "db": "postgres",
         "user": "postgres",
         "passwd": "b7ec6b08dc1f4f3383663c0ecdf5dda7",
