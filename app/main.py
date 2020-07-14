@@ -1,21 +1,22 @@
 import os
 import atexit
-import tempfile
-from flask import Flask, g, request, make_response
-from waitress import serve
+import shutil
+from tempfile import NamedTemporaryFile
+from pathlib import Path
+from typing import List
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import HTMLResponse, PlainTextResponse
+from starlette.requests import Request
 import config
 from mod import caytrong, channuoi, dichbenh
 
-tmpDir = tempfile.TemporaryDirectory()
-app = Flask(__name__)
-app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = tmpDir.name
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
+app = FastAPI()
 
 postgreSQL_pool = config.pgPool
 
 
-def init():
+@app.on_event("startup")
+async def startup_event():
     conn = postgreSQL_pool.getconn()
     with conn.cursor() as cur:
         for idx in config.ext:
@@ -24,33 +25,8 @@ def init():
     postgreSQL_pool.putconn(conn)
 
 
-def get_db():
-    if 'db' not in g:
-        g.db = postgreSQL_pool.getconn()
-    return g.db
-
-
-@atexit.register
-def onexit():
-    tmpDir.cleanup()
-    if postgreSQL_pool:
-        postgreSQL_pool.closeall()
-
-
-@app.teardown_appcontext
-def close_conn(e=None):
-    db = g.pop('db', None)
-    if db is None:
-        return
-    if e is None:
-        db.commit()
-    else:
-        db.rollback()
-    postgreSQL_pool.putconn(db)
-
-
-@app.route('/')
-def upload_form():
+@app.get('/', response_class=HTMLResponse)
+async def upload_form():
     html = """
     <!DOCTYPE html>
 <html>
@@ -278,47 +254,28 @@ def upload_form():
     return html
 
 
-@app.route('/upload/<modname>', methods=['POST'])
-def upload_file(modname):
-    file = request.files['file']
-
-    save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    current_chunk = int(request.form['dzchunkindex'])
-
+def save_upload_file_tmp(upload_file: UploadFile) -> Path:
     try:
-        with open(save_path, 'ab') as f:
-            f.seek(int(request.form['dzchunkbyteoffset']))
-            f.write(file.stream.read())
-    except OSError:
-        # log.exception will include the traceback so we can see what's wrong
-        print('Could not write to file')
-        return make_response(("Not sure why,"
-                              " but we couldn't write the file to disk", 500))
+        suffix = Path(upload_file.filename).suffix
+        with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            shutil.copyfileobj(upload_file.file, tmp)
+            tmp_path = Path(tmp.name)
+    finally:
+        upload_file.file.close()
+    return tmp_path
 
-    total_chunks = int(request.form['dztotalchunkcount'])
 
-    if current_chunk + 1 == total_chunks:
-        # This was the last chunk, the file should be complete and the size we expect
-        if os.path.getsize(save_path) != int(request.form['dztotalfilesize']):
-            print(f"File {file.filename} was completed, "
-                  f"but has a size mismatch."
-                  f"Was {os.path.getsize(save_path)} but we"
-                  f" expected {request.form['dztotalfilesize']} ")
-            os.unlink(save_path)
-            return make_response(('Size mismatch', 500))
-        result = "Sai định dạng"
+@app.post('/upload/{modname}')
+async def upload_file(modname, uploadfile: UploadFile = File(...)):
+    save_path = save_upload_file_tmp(uploadfile)
+    result = "Sai định dạng"
+    try:
         if modname == "caytrong":
-            result = make_response(caytrong.process(save_path, get_db()), 200)
+            result = await caytrong.process(save_path, postgreSQL_pool)
         elif modname == "channuoi":
-            result = make_response(channuoi.process(save_path, get_db()), 200)
+            result = await channuoi.process(save_path, postgreSQL_pool)
         elif modname == "dichbenh":
-            result = make_response(dichbenh.process(save_path, get_db()), 200)
-        os.unlink(save_path)
-        return make_response(result, 200)
-
-    return make_response((f"Chunk upload successful {modname}", 200))
-
-
-if __name__ == "__main__":
-    init()
-    serve(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+            result = await dichbenh.process(save_path, postgreSQL_pool)
+    finally:
+        save_path.unlink()
+    return result

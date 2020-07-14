@@ -1,8 +1,0 @@
-wheel
-numpy 
-pandas==0.25.0
-xlrd
-psycopg2-binary
-flask
-waitress
-nuitka

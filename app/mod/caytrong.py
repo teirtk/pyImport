@@ -77,7 +77,7 @@ rep = {"Cây Lúa": "Lúa",
        r"^Khác \(.*": "Khác"}
 
 
-def process(file, conn):
+def process(file, pool):
     basename = os.path.basename(file)
     buffer = io.StringIO()
     header = True
@@ -134,21 +134,25 @@ def process(file, conn):
         return f"{basename}: bị bảo vệ\n"
     except TypeError:
         return f"{basename}: Sai định dạng ở sheet {name}\n"
-    if buffer.getvalue().count('\n') > 1:
-        buffer.seek(0)
-        with conn.cursor() as cur:
-            cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
+    try:
+        conn = pool.getconn()
+        if buffer.getvalue().count('\n') > 1:
+            buffer.seek(0)
+            with conn.cursor() as cur:
+                cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
                         f"TABLE {config.ext['caytrong']['table']} WITH NO DATA")
-            cur.copy_expert(
-                "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
-            cur.execute(f"INSERT INTO {config.ext['caytrong']['table']} "
+                cur.copy_expert(
+                    "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
+                cur.execute(f"INSERT INTO {config.ext['caytrong']['table']} "
                         f"SELECT * FROM tmp_table EXCEPT "
                         f"SELECT * FROM {config.ext['caytrong']['table']};")
-            nline = cur.rowcount
-        conn.commit()
-        buffer.close()
-        if nline > 0:
-            return f"{basename}: {nline:,} dòng được thêm \n"
+                nline = cur.rowcount
+            conn.commit()
+            buffer.close()
+            if nline > 0:
+                return f"{basename}: {nline:,} dòng được thêm \n"
         return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
-    buffer.close()
+    finally:
+        pool.putconn(conn)
+        buffer.close()
     return f"{basename}: Sai định dạng \n"

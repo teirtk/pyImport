@@ -1,0 +1,8 @@
+wheel
+numpy 
+pandas
+xlrd
+psycopg2-binary
+fastapi
+starlette
+python-multipart
