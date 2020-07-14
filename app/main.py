@@ -1,10 +1,10 @@
 import os
 import atexit
 import shutil
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
 from pathlib import Path
 from typing import List
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from starlette.requests import Request
 import config
@@ -12,6 +12,7 @@ from mod import caytrong, channuoi, dichbenh
 
 app = FastAPI()
 
+tmpDir = TemporaryDirectory().name
 postgreSQL_pool = config.pgPool
 
 
@@ -215,7 +216,7 @@ async def upload_form():
             parallelUploads: 5,
             forceChunking: true,
             maxFilesize: 1025, // megabytes
-            chunkSize: 5000000, // bytes
+            chunkSize: 500000000, // bytes
             addedfile: function (file) {
                 this.options.url = "/upload/" + document.querySelector("input[name=format]:checked").value;
                 uploadProgress[file.upload.uuid] = 0
@@ -254,28 +255,37 @@ async def upload_form():
     return html
 
 
-def save_upload_file_tmp(upload_file: UploadFile) -> Path:
-    try:
-        suffix = Path(upload_file.filename).suffix
-        with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            shutil.copyfileobj(upload_file.file, tmp)
-            tmp_path = Path(tmp.name)
-    finally:
-        upload_file.file.close()
-    return tmp_path
+@app.post('/upload/{modname}', response_class=PlainTextResponse)
+async def upload_file(modname, file: UploadFile = File(...), dzchunkindex: int = Form(...), dztotalfilesize: int = Form(...), dzchunkbyteoffset: int = Form(...), dztotalchunkcount: int = Form(...)):
 
+    save_path = os.path.join(tmpDir, file.filename)
+    current_chunk = dzchunkindex
 
-@app.post('/upload/{modname}')
-async def upload_file(modname, uploadfile: UploadFile = File(...)):
-    save_path = save_upload_file_tmp(uploadfile)
-    result = "Sai định dạng"
     try:
-        if modname == "caytrong":
-            result = await caytrong.process(save_path, postgreSQL_pool)
-        elif modname == "channuoi":
-            result = await channuoi.process(save_path, postgreSQL_pool)
-        elif modname == "dichbenh":
-            result = await dichbenh.process(save_path, postgreSQL_pool)
-    finally:
-        save_path.unlink()
-    return result
+        with open(save_path, 'ab') as f:
+            f.seek(dzchunkbyteoffset)
+            f.write(file.file.read())
+    except OSError:
+        # log.exception will include the traceback so we can see what's wrong
+        print('Could not write to file')
+        return "Not sure why, but we couldn't write the file to disk"
+
+    if current_chunk + 1 == dztotalchunkcount:
+        # This was the last chunk, the file should be complete and the size we expect
+        if os.path.getsize(save_path) != dztotalfilesize:
+            print(f"File {file.filename} was completed, "
+                  f"but has a size mismatch."
+                  f"Was {os.path.getsize(save_path)} but we"
+                  f" expected {dztotalfilesize} ")
+        result = "Sai định dạng"
+        try:
+            if modname == "caytrong":
+                result = caytrong.process(save_path, postgreSQL_pool)
+            elif modname == "channuoi":
+                result = channuoi.process(save_path, postgreSQL_pool)
+            elif modname == "dichbenh":
+                result = dichbenh.process(save_path, postgreSQL_pool)
+        finally:
+            save_path.unlink()
+        return result
+    return f"Chunk upload successful {modname}"
