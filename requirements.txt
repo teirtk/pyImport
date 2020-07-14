@@ -1,6 +1,6 @@
 wheel
 numpy 
-pandas==0.25.0
+pandas
 xlrd
 psycopg2-binary
 flask
