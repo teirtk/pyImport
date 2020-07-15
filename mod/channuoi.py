@@ -4,7 +4,7 @@ import io
 import os
 import re
 import pandas as pd
-import config
+from conf import config
 
 rep = {"trâu": "trau",
        "bò": "bo",

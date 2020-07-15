@@ -5,7 +5,7 @@ from datetime import timedelta, date
 import pandas as pd
 import numpy as np
 from xlrd import biffh
-import config
+from conf import config
 
 
 def get_date(s):

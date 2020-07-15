@@ -3,7 +3,7 @@ import atexit
 import tempfile
 from flask import Flask, g, request, make_response
 from waitress import serve
-import config
+from conf import config
 from mod import caytrong, channuoi, dichbenh
 
 tmpDir = tempfile.TemporaryDirectory()
