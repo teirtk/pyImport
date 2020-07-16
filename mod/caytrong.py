@@ -25,7 +25,7 @@ def get_date(s):
         else:
             d = "05"
             rdate = date.fromisoformat(f"{y}-{m}-{d}")
-            return rdate+timedelta(months=1)
+            return rdate + timedelta(months=1)
         return date.fromisoformat(f"{y}-{m}-{d}")
     return None
 
@@ -59,22 +59,8 @@ def get_first_row(ds):
 
 keyword = set(["Lúa", "Mía", "Dừa", "Đậu Xanh", "Khóm",
                "Cây Ăn Quả", "Cây Rau, Màu", "Cây Lâu Năm Khác"])
-rep = {"Cây Lúa": "Lúa",
-       "Cây Mía": "Mía",
-       "Cây Dừa": "Dừa",
-       "Cây khóm": "Khóm",
-       "Cây ăn quả": "Cây Ăn Quả",
-       "Cây rau, màu": "Cây Rau, Màu",
-       "Cây lâu năm khác": "Cây Lâu Năm Khác",
-       r"Mía \(ép lấy đường\)": "Lấy đường",
-       r"Mía \(ép lấy nước giải khát\)": "Lấy nước",
-       "Xòai": "Xoài",
-       "X.G": "xuống g",
-       " tấn/ha": "",
-       " vụ/năm": "",
-       r" \(ha\)": "",
-       r"\s*\d{4}\s*-\s*\d{4}\s*": "",
-       r"^Khác \(.*": "Khác"}
+rep = {r"\s*\d{4}\s*-\s*\d{4}\s*": "",
+       r"Khác \(.*": "Khác"}
 
 
 def process(file, conn):
@@ -102,6 +88,8 @@ def process(file, conn):
                 df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
                 df['Unnamed: 1'] = df['Unnamed: 1'].apply(str).replace(
                     rep, regex=True).str.strip()
+                df['Unnamed: 1'] = df['Unnamed: 1'].map(config.caytrong_dict.replace_keywords)
+                print(df.to_string())
                 df[col2] = df[col2].astype(str).replace(
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
                 df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ', na=False)]
@@ -118,12 +106,12 @@ def process(file, conn):
                     str).str.contains('Cây Rau, Màu', na=False)]
                 df = df[df['dup'] & df[col2].astype(float).gt(0)]
                 df['thuoctinh'] = '"' + \
-                    df['thuoctinhlb'].apply(str).str.strip() + '":'+df[col2]
+                    df['thuoctinhlb'].apply(str).str.strip() + '":' + df[col2]
                 df.rename(columns={"Unnamed: 1": 'chuyenmuc'}, inplace=True)
                 df["nhom"] = df["nhom"].apply(str).replace({'Đậu Xanh': 'Đậu'})
                 dfp = df.groupby(["nhom", "chuyenmuc"]).agg(
                     {"thuoctinh": ",".join})
-                dfp['thuoctinh'] = "{"+dfp['thuoctinh']+"}"
+                dfp['thuoctinh'] = "{" + dfp['thuoctinh'] + "}"
                 dfp["fdate"] = fdate
                 dfp["mota1"] = mota1
                 dfp["mota2"] = mota2

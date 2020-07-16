@@ -1,11 +1,15 @@
 import os
 import json
 from psycopg2 import pool
+from flashtext import KeywordProcessor
 
-with open('conf/config.json') as config_file:
-    data = json.load(config_file)
+with open('conf/config.json') as f:
+    data = json.load(f)
+with open('mod/caytrong.dict') as f:
+    data = eval(f.read())
+    caytrong_dict = KeywordProcessor()
+    caytrong_dict.add_keywords_from_dict(data)
 if 'PORT' in os.environ:
-  # elephantsql
     db = data['dbhero']
 else:
     db = data['db']

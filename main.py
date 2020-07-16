@@ -232,7 +232,7 @@ def upload_form():
             url: "/upload/",
             timeout: 180000,
             acceptedFiles: "application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            paramName: "file", 
+            paramName: "file",
             clickable: document.getElementById("upload-btn"),
             chunking: true,
             previewsContainer: null,
@@ -269,7 +269,7 @@ def upload_form():
         // Dropzone programmatically later
 
         // Disable auto discover for all elements:
-        Dropzone.autoDiscover = false;       
+        Dropzone.autoDiscover = false;
     </script>
 </body>
 
