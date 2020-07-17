@@ -1,14 +1,12 @@
-{
-"Lúa":["cây lúa"],
-"Mía":["cây mía"],
-"Dừa":["cây dừa"],
-"Khóm":["cây khóm"],
-"Cây ăn quả":["cây ăn quả"],
-"Cây rau, màu":["cây rau, màu"],
-"Cây lâu năm khác": ["cây lâu năm khác"],
-"Lấy đường":["mía (ép lấy đường)"],
-"Lấy nước":["mía (ép lấy nước giải khát)"],
-"Xoài":["xòai"],
-"xuống g":["X.G"],
-"":[" tấn/ha"," vụ/năm"," (ha)"]
-}
+Lúa|cây lúa
+Mía|cây mía
+Dừa|cây dừa
+Khóm|cây khóm
+Cây ăn quả|cây ăn quả
+Cây rau màu|cây rau màu
+Cây lâu năm khác|cây lâu năm khác
+Lấy đường|mía (ép lấy đường)
+Lấy nước|mía (ép lấy nước giải khát)
+Xoài|xòai
+xuống g|X.G
+| tấn/ha vụ/năm (ha)

@@ -1,14 +1,13 @@
 import os
 import json
 from psycopg2 import pool
-from flashtext import KeywordProcessor
 
-with open('conf/config.json') as f:
+with open("mod/caytrong.dict", "r", encoding="utf8") as f:
+    data1 = f.readines()
+print(caytrong_dict.get_all_keywords())
+with open("conf/config.json") as f:
     data = json.load(f)
-with open('mod/caytrong.dict') as f:
-    data = eval(f.read())
-    caytrong_dict = KeywordProcessor()
-    caytrong_dict.add_keywords_from_dict(data)
+
 if 'PORT' in os.environ:
     db = data['dbhero']
 else:
