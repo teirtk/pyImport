@@ -4,7 +4,7 @@ import io
 import os
 import re
 import pandas as pd
-from conf import config
+import config
 
 rep = {"trâu": "trau",
        "bò": "bo",
@@ -41,23 +41,23 @@ def get_date(s):
     if len(r1) > 0:
         (d, m, y) = r1[0]
         if len(d) == 1:
-            d = "0"+d
+            d = "0" + d
         if len(m) == 1:
-            m = "0"+m
+            m = "0" + m
         return date.fromisoformat(f"{y}-{m}-{d}")
     r1 = re.findall(r"([0-9]+) năm ([0-9]+)", s.lower())
     if len(r1) > 0:
         (m, y) = r1[0]
         if len(m) == 1:
-            m = "0"+m
+            m = "0" + m
         return date.fromisoformat(f"{y}-{m}-01")
     r1 = re.findall(r"([0-9]+)\/([0-9]+) năm ([0-9]+)", s.lower())
     if len(r1) > 0:
         (d, m, y) = r1[0]
         if len(d) == 1:
-            d = "0"+d
+            d = "0" + d
         if len(m) == 1:
-            m = "0"+m
+            m = "0" + m
         return date.fromisoformat(f"{y}-{m}-{d}")
     return None
 
@@ -123,7 +123,7 @@ def process(file, conn):
             df.iloc[:, 3:] = df.iloc[:, 3:].fillna(0).applymap(
                 lambda x: 0 if isinstance(x, str) else x)
             df["hoten"] = df["hoten"].str.strip().str.title()
-            for col in [x for x in rep.values() if not x in columns]:
+            for col in [x for x in rep.values() if x not in columns]:
                 df[col] = 0
             df["huyen"] = huyen
             df["fdate"] = fdate

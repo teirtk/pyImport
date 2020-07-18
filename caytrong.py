@@ -40,6 +40,9 @@ def fix_addr(s):
     return s
 
 
+def fix_dict(s):
+    s = config.caytrong_pat.sub(lambda m: config.caytrong_dict[m.group(0)], s, flags=re.IGNORECASE)
+    return s
 def get_col(df):
     f = False
     for col in df.columns:
@@ -88,8 +91,8 @@ def process(file, conn):
                 df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
                 df['Unnamed: 1'] = df['Unnamed: 1'].apply(str).replace(
                     rep, regex=True).str.strip()
-                df['Unnamed: 1'] = df['Unnamed: 1'].map(config.caytrong_dict.replace_keywords)
-                print(df.to_string())
+                df['Unnamed: 1'] = df['Unnamed: 1'].apply(str).replace(config.caytrong_dict,regex=False)
+                #print(df.to_string())
                 df[col2] = df[col2].astype(str).replace(
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
                 df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ', na=False)]
@@ -120,8 +123,8 @@ def process(file, conn):
                     header = False
     except biffh.XLRDError:
         return f"{basename}: bị bảo vệ\n"
-    except TypeError:
-        return f"{basename}: Sai định dạng ở sheet {name}\n"
+    #except TypeError:
+        #return f"{basename}: Sai định dạng ở sheet {name}\n"
     if buffer.getvalue().count('\n') > 1:
         buffer.seek(0)
         with conn.cursor() as cur:

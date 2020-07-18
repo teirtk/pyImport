@@ -1,10 +1,16 @@
 import os
 import json
+import re
 from psycopg2 import pool
 
+caytrong_dict = {}
 with open("mod/caytrong.dict", "r", encoding="utf8") as f:
-    data1 = f.readines()
-print(caytrong_dict.get_all_keywords())
+    for line in f:
+        il = line.rstrip("\n").split("|")
+        for k in il[1:]:
+            caytrong_dict[k] = il[0]
+caytrong_pat = re.compile("|".join(caytrong_dict.keys()))
+
 with open("conf/config.json") as f:
     data = json.load(f)
 

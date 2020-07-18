@@ -3,8 +3,10 @@ import atexit
 import tempfile
 from flask import Flask, g, request, make_response
 from waitress import serve
-from conf import config
-from mod import caytrong, channuoi, dichbenh
+import config
+import caytrong
+import channuoi
+import dichbenh
 
 tmpDir = tempfile.TemporaryDirectory()
 app = Flask(__name__)

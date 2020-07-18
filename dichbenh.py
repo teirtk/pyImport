@@ -3,7 +3,7 @@ import re
 import os
 import io
 import pandas as pd
-from conf import config
+import config
 
 
 def get_date(s, getdate):
