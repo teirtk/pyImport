@@ -21,13 +21,15 @@ def read_dict():
 
 def read_town_list():
     last = ""
-    with open("cfg/town.csv", "r") as f:
+    with open("cfg/town.csv", "r", encoding="utf-8") as f:
         for line in f:
             il = line.rstrip("\n").split(",")
+            tmp = {}
+            tmp[il[2]] = [il[3], il[1]]
             if il[0] == last:
-                town_list[il[0]].append(il[1])
+                town_list[il[0]].append(tmp)
             else:
-                town_list[il[0]] = [il[1]]
+                town_list[il[0]] = [tmp]
             last = il[0]
 
 
@@ -35,6 +37,7 @@ my_dict = {}
 town_list = {}
 read_dict()
 read_town_list()
+print(town_list)
 with open("cfg/config.json", "r") as f:
     data = json.load(f)
 
