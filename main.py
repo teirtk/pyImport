@@ -310,11 +310,11 @@ def upload_file(modname):
             return make_response(('Size mismatch', 500))
         result = "Sai định dạng"
         if modname == "caytrong":
-            result = caytrong.process(save_path, get_db())
+            result = caytrong.do_process(save_path, get_db())
         elif modname == "channuoi":
-            result = channuoi.process(save_path, get_db())
+            result = channuoi.do_process(save_path, get_db())
         elif modname == "dichbenh":
-            result = dichbenh.process(save_path, get_db())
+            result = dichbenh.do_process(save_path, get_db())
         os.unlink(save_path)
         return make_response(result, 200)
 

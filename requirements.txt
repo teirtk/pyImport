@@ -6,4 +6,5 @@ psycopg2-binary
 flask
 waitress
 nuitka
-cryptography
+python-Levenshtein
+fuzzywuzzy

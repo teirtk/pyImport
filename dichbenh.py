@@ -7,13 +7,14 @@ import config
 
 
 def get_date(s, getdate):
-    if isinstance(s, str):
-        if getdate:
-            r1 = re.findall(r"([0-9]+) năm ([0-9]+)", s)
-        else:
-            r1 = re.findall(r"([0-9]+) -  ([0-9]+)", s)
-        if len(r1) > 0:
-            return r1[0]
+    if not isinstance(s, str):
+        return ''
+    if getdate:
+        r1 = re.findall(r"([0-9]+) năm ([0-9]+)", s)
+    else:
+        r1 = re.findall(r"([0-9]+) -  ([0-9]+)", s)
+    if len(r1) > 0:
+        return r1[0]
     return (s,)
 
 
@@ -21,10 +22,11 @@ rep = {"TX ": "Thị xã ",
        "TP ": "Thành phố "}
 
 
-def process(file, conn):
+def do_process(file, conn):
     basename = os.path.basename(file)
-    with pd.ExcelFile(file) as xls:
-        try:
+    buffer = io.StringIO()
+    try:
+        with pd.ExcelFile(file) as xls:
             df = pd.read_excel(xls)
             (w, y) = get_date(df.loc[6, "Unnamed: 5"], True)
             df["fdate"] = date.fromisocalendar(int(y), int(w), 1)
@@ -56,11 +58,9 @@ def process(file, conn):
                            "dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong", "dtmattrang",
                            "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '')
                                                                   if isinstance(x, str) else x)
-        except (TypeError, ValueError):
-            return f"{basename}: Sai định dạng\n"
-    buffer = io.StringIO()
-    df.to_csv(buffer, index=False)
-    if buffer.getvalue().count('\n') > 1:
+        df.to_csv(buffer, index=False)
+        if not buffer.getvalue().count('\n'):
+            return f"{basename}: Sai định dạng \n"
         buffer.seek(0)
         with conn.cursor() as cur:
             cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
@@ -72,9 +72,10 @@ def process(file, conn):
                         f"SELECT * FROM {config.ext['dichbenh']['table']};")
             nrow = cur.rowcount
             conn.commit()
-            buffer.close()
             if nrow > 0:
                 return f"{basename}: {nrow:,} dòng được thêm \n"
             return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
-    buffer.close()
-    return f"{basename}: Sai định dạng \n"
+    except (TypeError, ValueError):
+        return f"{basename}: Sai định dạng\n"
+    finally:
+        buffer.close()

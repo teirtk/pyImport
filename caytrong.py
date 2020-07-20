@@ -5,6 +5,7 @@ from datetime import timedelta, date
 import pandas as pd
 import numpy as np
 from xlrd import biffh
+from fuzzywuzzy import fuzz, process
 import config
 
 
@@ -30,19 +31,21 @@ def get_date(s):
     return None
 
 
-def fix_addr(s):
-    mota_dict = {"Tx ": "Thị xã ", "Tp ": "Thành phố ", "Ghâu": "Châu",
-                 "Tt ": "Thị trấn ", "H ": "Huyện ", "P ": "Phường "}
-    mota_dict = dict((re.escape(k), v) for k, v in mota_dict.items())
-    pattern = re.compile("|".join(mota_dict.keys()))
-    s = s.title().strip().replace(".", "")
-    s = pattern.sub(lambda m: mota_dict[re.escape(m.group(0))], s)
+def fix_addr(s, s1=""):
+    if s1:
+        result = process.extractOne(s, config.town_list[s1], score_cutoff=60)
+        if result is None:
+            return ""
+        (s, _) = result
+    else:
+        result = process.extractOne(
+            s, config.town_list.keys(), score_cutoff=60)
+        if result is None:
+            return ""
+        (s, _) = result
     return s
 
 
-def fix_dict(s):
-    s = config.caytrong_pat.sub(lambda m: config.caytrong_dict[m.group(0)], s, flags=re.IGNORECASE)
-    return s
 def get_col(df):
     f = False
     for col in df.columns:
@@ -60,45 +63,41 @@ def get_first_row(ds):
     return -1
 
 
-keyword = set(["Lúa", "Mía", "Dừa", "Đậu Xanh", "Khóm",
-               "Cây Ăn Quả", "Cây Rau, Màu", "Cây Lâu Năm Khác"])
-rep = {r"\s*\d{4}\s*-\s*\d{4}\s*": "",
-       r"Khác \(.*": "Khác"}
+keyword = {"Lúa", "Mía", "Dừa", "Đậu xanh", "Khóm",
+           "Cây ăn quả", "Cây rau, màu", "Cây lâu năm khác"}
 
 
-def process(file, conn):
+def do_process(file, conn):
     basename = os.path.basename(file)
     buffer = io.StringIO()
     header = True
     try:
         with pd.ExcelFile(file) as xls:
             for idx, name in enumerate(xls.sheet_names):
-                if name.startswith("Sheet") or name.startswith("Compa"):
-                    continue
-                df = pd.read_excel(xls, sheet_name=name, encoding='utf-16le')
-                addr = fix_addr(name)
+                df = pd.read_excel(xls, sheet_name=name, encoding='utf-8')
                 if idx == 0:
-                    mota2 = addr
+                    mota2 = fix_addr(name)
+                    if not mota2:
+                        return f"{basename}: Không thể lấy được tên huyện \n"
                     fdate = get_date(df.head(20).to_string())
                     if fdate is None:
                         return f"{basename}: Không lấy được ngày tháng \n"
                     continue
-                mota1 = addr
+                mota1 = fix_addr(name, mota2)
+                if not mota1:
+                    continue
                 col2 = get_col(df)
                 df = df.reindex(
                     ["Unnamed: 1", col2], axis="columns")
                 df = df.loc[get_first_row(df['Unnamed: 1']):, :]
                 df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
-                df['Unnamed: 1'] = df['Unnamed: 1'].apply(str).replace(
-                    rep, regex=True).str.strip()
-                df['Unnamed: 1'] = df['Unnamed: 1'].apply(str).replace(config.caytrong_dict,regex=False)
-                #print(df.to_string())
+                df['Unnamed: 1'] = df['Unnamed: 1'].apply(str).str.lower().replace(
+                    config.my_dict['caytrong'], regex=True).str.strip().str.capitalize()
                 df[col2] = df[col2].astype(str).replace(
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
-                df = df[~df['Unnamed: 1'].str.contains('GHI CHÚ', na=False)]
                 df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)
-                df.loc[df['Unnamed: 1'].str.contains(
-                    r'Đậu các loại', na=True), 'dup'] = False
+                df.loc[df['Unnamed: 1'] == 'Đậu các loại', 'dup'] = False
+                df.loc[df['Unnamed: 1'] == "Khác", 'dup'] = False
                 df[col2] = pd.to_numeric(
                     df[col2], errors='coerce').round(2).apply(str)
                 df['nhom'] = df['Unnamed: 1'].str.strip().where(
@@ -106,12 +105,12 @@ def process(file, conn):
                 df['thuoctinhlb'] = df['Unnamed: 1'].where(
                     ~df['dup']).fillna(method='ffill')
                 df = df[~df['thuoctinhlb'].astype(
-                    str).str.contains('Cây Rau, Màu', na=False)]
+                    str).str.contains('Cây rau, màu', na=False)]
                 df = df[df['dup'] & df[col2].astype(float).gt(0)]
                 df['thuoctinh'] = '"' + \
                     df['thuoctinhlb'].apply(str).str.strip() + '":' + df[col2]
                 df.rename(columns={"Unnamed: 1": 'chuyenmuc'}, inplace=True)
-                df["nhom"] = df["nhom"].apply(str).replace({'Đậu Xanh': 'Đậu'})
+                df["nhom"] = df["nhom"].apply(str).replace({'Đậu xanh': 'Đậu'})
                 dfp = df.groupby(["nhom", "chuyenmuc"]).agg(
                     {"thuoctinh": ",".join})
                 dfp['thuoctinh'] = "{" + dfp['thuoctinh'] + "}"
@@ -121,11 +120,8 @@ def process(file, conn):
                 dfp.to_csv(buffer, header=header)
                 if header:
                     header = False
-    except biffh.XLRDError:
-        return f"{basename}: bị bảo vệ\n"
-    #except TypeError:
-        #return f"{basename}: Sai định dạng ở sheet {name}\n"
-    if buffer.getvalue().count('\n') > 1:
+        if not buffer.getvalue().count('\n'):
+            return f"{basename}: Sai định dạng \n"
         buffer.seek(0)
         with conn.cursor() as cur:
             cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
@@ -137,9 +133,12 @@ def process(file, conn):
                         f"SELECT * FROM {config.ext['caytrong']['table']};")
             nline = cur.rowcount
         conn.commit()
-        buffer.close()
-        if nline > 0:
+        if nline:
             return f"{basename}: {nline:,} dòng được thêm \n"
         return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
-    buffer.close()
-    return f"{basename}: Sai định dạng \n"
+    except biffh.XLRDError:
+        return f"{basename}: bị bảo vệ\n"
+    except TypeError:
+        return f"{basename}: Sai định dạng ở sheet {name}\n"
+    finally:
+        buffer.close()

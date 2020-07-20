@@ -76,14 +76,14 @@ def get_huyen(ds):
                 if len(arr) > 1:
                     x = get_date(arr[1])
                     r1 = re.findall(
-                        r'(huyện|thị xã|thành phố) (.+)', arr[0])
+                        r'(quận|huyện|thị xã|thành phố) (.+)', arr[0])
                     if len(r1) > 0:
                         (p1, p2) = r1[0]
                         return (f"{p1.capitalize()} {p2.title()}", x)
     return (None, None)
 
 
-def process(file, conn):
+def do_process(file, conn):
     basename = os.path.basename(file)
     count = 0
     fdate = None
@@ -95,15 +95,16 @@ def process(file, conn):
             if name.startswith("Sheet"):
                 continue
             df = pd.read_excel(xls, sheet_name=name)
-            if df.empty:
-                continue
-            dfa.append(df)
             if fdate is None:
                 (huyen, fdate) = get_huyen(df.head(10))
+            if len(df.index) > 300:
+                dfa.append(df)
+
     if fdate is None:
         return f"{basename}: Sai định dạng \n"
-    for df in dfa:
-        try:
+    buffer = io.StringIO()
+    try:
+        for df in dfa:
             first_row = get_first_row(df)
             if first_row < -1:
                 continue
@@ -127,30 +128,30 @@ def process(file, conn):
                 df[col] = 0
             df["huyen"] = huyen
             df["fdate"] = fdate
-            # Xuất các dòng trùng nhau ra file
-            # df1 = df[df.duplicated(keep="first")]
-            # with open("dup", "w+", encoding="utf8") as f:
-            #     f.write(df1.to_string())
-        except TypeError:
-            return f"{basename} bị lỗi\n"
-        buffer = io.StringIO()
-        df.to_csv(buffer, index=False, line_terminator="\n")
-        if buffer.getvalue().count('\n') > 1:
-            skip = True
-            buffer.seek(0)
-            with conn.cursor() as cur:
-                cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
-                            f"TABLE {config.ext['channuoi']['table']} WITH NO DATA;")
-                cur.copy_expert(
-                    "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
-                cur.execute(f"INSERT INTO {config.ext['channuoi']['table']} "
-                            f"SELECT * FROM tmp_table EXCEPT "
-                            f"SELECT * FROM {config.ext['channuoi']['table']};")
-                nrow = cur.rowcount
+
+        df.drop_duplicates().to_csv(buffer, index=False, line_terminator="\n")
+
+        with open('data', 'w+') as f:
+            f.write(buffer.getvalue())
+            if buffer.getvalue().count('\n') > 1:
+                skip = True
+                buffer.seek(0)
+                with conn.cursor() as cur:
+                    cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
+                                f"TABLE {config.ext['channuoi']['table']} WITH NO DATA;")
+                    cur.copy_expert(
+                        "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
+                    cur.execute(f"INSERT INTO {config.ext['channuoi']['table']} "
+                                f"SELECT * FROM tmp_table EXCEPT "
+                                f"SELECT * FROM {config.ext['channuoi']['table']};")
+                    nrow = cur.rowcount
                 conn.commit()
-            buffer.close()
-            count += nrow
-    if count > 0:
-        return f"{basename}: {count:,} dòng được thêm \n"
-    if skip:
-        return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
+                count += nrow
+        if count:
+            return f"{basename}: {count:,} dòng được thêm \n"
+        if skip:
+            return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
+    except TypeError:
+        return f"{basename} bị lỗi\n"
+    finally:
+        buffer.close()
