@@ -6,6 +6,7 @@ import pandas as pd
 import config
 
 
+
 def get_date(s, getdate):
     if not isinstance(s, str):
         return ''

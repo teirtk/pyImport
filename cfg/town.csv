@@ -1426,7 +1426,7 @@ Mường Nhé,Huyện,Nậm Kè,Xã
 Mường Nhé,Huyện,Mường Toong,Xã
 Mường Nhé,Huyện,Quảng Lâm,Xã
 Mường Nhé,Huyện,Huổi Lếnh,Xã
-Mường Chà,Huyện,Thị Trấn Mường Chà,Thị trấn
+Mường Chà,Huyện,Mường Chà,Thị trấn
 Mường Chà,Huyện,Xá Tổng,Xã
 Mường Chà,Huyện,Mường Tùng,Xã
 Mường Chà,Huyện,Hừa Ngài,Xã
@@ -3437,7 +3437,7 @@ Vĩnh Tường,Huyện,Đại Đồng,Xã
 Vĩnh Tường,Huyện,Tân Tiến,Xã
 Vĩnh Tường,Huyện,Lũng Hoà,Xã
 Vĩnh Tường,Huyện,Cao Đại,Xã
-Vĩnh Tường,Huyện,Thị Trấn Thổ Tang,Thị trấn
+Vĩnh Tường,Huyện,Thổ Tang,Thị trấn
 Vĩnh Tường,Huyện,Vĩnh Sơn,Xã
 Vĩnh Tường,Huyện,Bình Dương,Xã
 Vĩnh Tường,Huyện,Tân Cương,Xã
@@ -5153,7 +5153,7 @@ Lang Chánh,Huyện,Tam Văn,Xã
 Lang Chánh,Huyện,Lâm Phú,Xã
 Lang Chánh,Huyện,Quang Hiến,Xã
 Lang Chánh,Huyện,Đồng Lương,Xã
-Ngọc Lặc,Huyện,Thị Trấn Ngọc Lặc,Thị trấn
+Ngọc Lặc,Huyện,Ngọc Lặc,Thị trấn
 Ngọc Lặc,Huyện,Lam Sơn,Xã
 Ngọc Lặc,Huyện,Mỹ Tân,Xã
 Ngọc Lặc,Huyện,Thúy Sơn,Xã
@@ -6661,7 +6661,7 @@ Cam Lộ,Huyện,Cam Thành,Xã
 Cam Lộ,Huyện,Cam Hiếu,Xã
 Cam Lộ,Huyện,Cam Chính,Xã
 Cam Lộ,Huyện,Cam Nghĩa,Xã
-Triệu Phong,Huyện,Thị Trấn Ái Tử,Thị trấn
+Triệu Phong,Huyện,Ái Tử,Thị trấn
 Triệu Phong,Huyện,Triệu An,Xã
 Triệu Phong,Huyện,Triệu Vân,Xã
 Triệu Phong,Huyện,Triệu Phước,Xã
@@ -6957,7 +6957,7 @@ Tây Giang,Huyện,Dang,Xã
 Đông Giang,Huyện,Za Hung,Xã
 Đông Giang,Huyện,Mà Cooi,Xã
 Đông Giang,Huyện,Ka Dăng,Xã
-Đại Lộc,Huyện,Thị Trấn Ái Nghĩa,Thị trấn
+Đại Lộc,Huyện,Ái Nghĩa,Thị trấn
 Đại Lộc,Huyện,Đại Sơn,Xã
 Đại Lộc,Huyện,Đại Lãnh,Xã
 Đại Lộc,Huyện,Đại Hưng,Xã
@@ -7177,7 +7177,7 @@ Quảng Ngãi,Thành phố,Tịnh An,Xã
 Quảng Ngãi,Thành phố,Nghĩa Phú,Xã
 Quảng Ngãi,Thành phố,Nghĩa Hà,Xã
 Quảng Ngãi,Thành phố,Nghĩa An,Xã
-Bình Sơn,Huyện,Thị Trấn Châu Ổ,Thị trấn
+Bình Sơn,Huyện,Châu Ổ,Thị trấn
 Bình Sơn,Huyện,Bình Thuận,Xã
 Bình Sơn,Huyện,Bình Thạnh,Xã
 Bình Sơn,Huyện,Bình Đông,Xã
@@ -7596,7 +7596,7 @@ Phú Hoà,Huyện,Hòa Hội,Xã
 Phú Hoà,Huyện,Hòa Trị,Xã
 Phú Hoà,Huyện,Hòa An,Xã
 Phú Hoà,Huyện,Hòa Định Đông,Xã
-Phú Hoà,Huyện,Thị Trấn Phú Hoà,Thị trấn
+Phú Hoà,Huyện,Phú Hoà,Thị trấn
 Phú Hoà,Huyện,Hòa Định Tây,Xã
 Phú Hoà,Huyện,Hòa Thắng,Xã
 Đông Hòa,Thị xã,Hòa Thành,Xã
@@ -10450,7 +10450,7 @@ Châu Đốc,Thành phố,Vĩnh Tế,Xã
 Châu Đốc,Thành phố,Vĩnh Châu,Xã
 An Phú,Huyện,An Phú,Thị trấn
 An Phú,Huyện,Khánh An,Xã
-An Phú,Huyện,Thị Trấn Long Bình,Thị trấn
+An Phú,Huyện,Long Bình,Thị trấn
 An Phú,Huyện,Khánh Bình,Xã
 An Phú,Huyện,Quốc Thái,Xã
 An Phú,Huyện,Nhơn Hội,Xã
@@ -10569,7 +10569,7 @@ Chợ Mới,Huyện,Hòa Bình,Xã
 Chợ Mới,Huyện,Hòa An,Xã
 Thoại Sơn,Huyện,Núi Sập,Thị trấn
 Thoại Sơn,Huyện,Phú Hoà,Thị trấn
-Thoại Sơn,Huyện,Thị Trấn Óc Eo,Thị trấn
+Thoại Sơn,Huyện,Óc Eo,Thị trấn
 Thoại Sơn,Huyện,Tây Phú,Xã
 Thoại Sơn,Huyện,An Bình,Xã
 Thoại Sơn,Huyện,Vĩnh Phú,Xã
@@ -10646,7 +10646,7 @@ Châu Thành,Huyện,Vĩnh Hoà Phú,Xã
 Châu Thành,Huyện,Minh Hòa,Xã
 Châu Thành,Huyện,Bình An,Xã
 Châu Thành,Huyện,Thạnh Lộc,Xã
-Giồng Riềng,Huyện,Thị Trấn Giồng Riềng,Thị trấn
+Giồng Riềng,Huyện,Giồng Riềng,Thị trấn
 Giồng Riềng,Huyện,Thạnh Hưng,Xã
 Giồng Riềng,Huyện,Thạnh Phước,Xã
 Giồng Riềng,Huyện,Thạnh Lộc,Xã
@@ -10823,12 +10823,12 @@ Vị Thanh,Thành phố,Vị Tân,Xã
 Vị Thanh,Thành phố,Hoả Lựu,Xã
 Vị Thanh,Thành phố,Tân Tiến,Xã
 Vị Thanh,Thành phố,Hoả Tiến,Xã
-Ngã Bảy,Thành phố,Ngã Bảy,Phường
-Ngã Bảy,Thành phố,Lái Hiếu,Phường
-Ngã Bảy,Thành phố,Hiệp Thành,Phường
-Ngã Bảy,Thành phố,Hiệp Lợi,Xã
-Ngã Bảy,Thành phố,Đại Thành,Xã
-Ngã Bảy,Thành phố,Tân Thành,Xã
+Ngã Bảy,Thị xã,Ngã Bảy,Phường
+Ngã Bảy,Thị xã,Lái Hiếu,Phường
+Ngã Bảy,Thị xã,Hiệp Thành,Phường
+Ngã Bảy,Thị xã,Hiệp Lợi,Xã
+Ngã Bảy,Thị xã,Đại Thành,Xã
+Ngã Bảy,Thị xã,Tân Thành,Xã
 Châu Thành A,Huyện,Một Ngàn,Thị trấn
 Châu Thành A,Huyện,Tân Hoà,Xã
 Châu Thành A,Huyện,Bảy Ngàn,Thị trấn
@@ -10839,7 +10839,7 @@ Châu Thành A,Huyện,Rạch Gòi,Thị trấn
 Châu Thành A,Huyện,Thạnh Xuân,Xã
 Châu Thành A,Huyện,Cái Tắc,Thị trấn
 Châu Thành A,Huyện,Tân Phú Thạnh,Xã
-Châu Thành,Huyện,Thị Trấn Ngã Sáu,Thị trấn
+Châu Thành,Huyện,Ngã Sáu,Thị trấn
 Châu Thành,Huyện,Đông Thạnh,Xã
 Châu Thành,Huyện,Phú An,Xã
 Châu Thành,Huyện,Đông Phú,Xã
@@ -11140,7 +11140,7 @@ Cái Nước,Huyện,Trần Thới,Xã
 Đầm Dơi,Huyện,Thanh Tùng,Xã
 Đầm Dơi,Huyện,Ngọc Chánh,Xã
 Đầm Dơi,Huyện,Nguyễn Huân,Xã
-Năm Căn,Huyện,Thị Trấn Năm Căn,Thị trấn
+Năm Căn,Huyện,Năm Căn,Thị trấn
 Năm Căn,Huyện,Hàm Rồng,Xã
 Năm Căn,Huyện,Hiệp Tùng,Xã
 Năm Căn,Huyện,Đất Mới,Xã
