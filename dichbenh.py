@@ -2,9 +2,9 @@ from datetime import date
 import re
 import os
 import io
+
 import pandas as pd
 import config
-
 
 
 def get_date(s, getdate):
@@ -17,10 +17,6 @@ def get_date(s, getdate):
     if len(r1) > 0:
         return r1[0]
     return (s,)
-
-
-rep = {"TX ": "Thị xã ",
-       "TP ": "Thành phố "}
 
 
 def do_process(file, conn):
@@ -48,7 +44,8 @@ def do_process(file, conn):
             df.loc[:, ["loai", "nhom", "svgh", "gdst"]] = df.loc[:, [
                 "loai", "nhom", "svgh", "gdst"]].applymap(
                     lambda x: x.strip() if isinstance(x, str) else x)
-            df["phanbo"] = df["phanbo"].replace(rep, regex=True)
+            df["phanbo"] = df["phanbo"].replace(
+                config.my_dict['dichbenh'], regex=True)
             df["nhom"] = df["svgh"].where(
                 df["svgh"].str.startswith("Nhóm cây:")).str.replace("Nhóm cây: ", "")
             df.loc[:, ["loai", "nhom"]] = df.loc[:, [

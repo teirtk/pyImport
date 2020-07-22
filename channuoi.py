@@ -25,15 +25,23 @@ def get_col(ds):
     return col
 
 
+def get_so_nha(ds):
+    for index, item in ds.items():
+        if not isinstance(item, str):
+            continue
+        if item.lower() == "số nhà":
+            return index
+    return -1
+
+
 def get_first_row(df):
-    for value in df.columns.values:
-        if value == 'Họ và tên':
-            return -1
     ds = df.head(20).iloc[:, 1]
     for index, value in ds.items():
-        if value == 'Họ và tên':
+        if not isinstance(value, str):
+            continue
+        if value.lower() == 'họ và tên':
             return index
-    return -2
+    return -1
 
 
 def get_date(s):
@@ -63,8 +71,8 @@ def get_date(s):
 
 
 def get_huyen(ds):
-    for _, row in ds.items():
-        for _, value in row.items():
+    for row in ds.itertuples():
+        for (_, value) in enumerate(row):
             if isinstance(value, str):
                 s = value.lower().replace(" tx ", " thị xã ").replace(
                     " tp ", " thành phố ")
@@ -85,16 +93,16 @@ def get_huyen(ds):
 
 def do_process(file, conn):
     basename = os.path.basename(file)
-    count = 0
+    nline = 0
     fdate = None
     huyen = None
     dfa = []
-    skip = False
+    header = False
     with pd.ExcelFile(file) as xls:
         for _, name in enumerate(xls.sheet_names):
             if name.startswith("Sheet"):
                 continue
-            df = pd.read_excel(xls, sheet_name=name)
+            df = pd.read_excel(xls, sheet_name=name, header=None)
             if fdate is None:
                 (huyen, fdate) = get_huyen(df.head(10))
             if len(df.index) > 300:
@@ -106,6 +114,9 @@ def do_process(file, conn):
     try:
         for df in dfa:
             first_row = get_first_row(df)
+            drop_col = get_so_nha(df.iloc[first_row, :])
+            if drop_col >= 0:
+                df.drop(df.columns[drop_col], axis='columns', inplace=True)
             if first_row < -1:
                 continue
             columns = ["hoten", "ap", "xa", "gade", "gathit", "vitde", "vitthit",
@@ -124,32 +135,30 @@ def do_process(file, conn):
             df.iloc[:, 3:] = df.iloc[:, 3:].fillna(0).applymap(
                 lambda x: 0 if isinstance(x, str) else x)
             df["hoten"] = df["hoten"].str.strip().str.title()
-            for col in [x for x in rep.values() if x not in columns]:
-                df[col] = 0
+            for col in rep.values():
+                if col not in columns:
+                    df[col] = 0
             df["huyen"] = huyen
             df["fdate"] = fdate
+            df.drop_duplicates().to_csv(buffer, index=False, header=header, line_terminator="\n")
+            if header:
+                header = False
 
-        df.drop_duplicates().to_csv(buffer, index=False, line_terminator="\n")
-
-        with open('data', 'w+') as f:
-            f.write(buffer.getvalue())
-            if buffer.getvalue().count('\n') > 1:
-                skip = True
-                buffer.seek(0)
-                with conn.cursor() as cur:
-                    cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
-                                f"TABLE {config.ext['channuoi']['table']} WITH NO DATA;")
-                    cur.copy_expert(
-                        "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
-                    cur.execute(f"INSERT INTO {config.ext['channuoi']['table']} "
-                                f"SELECT * FROM tmp_table EXCEPT "
-                                f"SELECT * FROM {config.ext['channuoi']['table']};")
-                    nrow = cur.rowcount
+        if buffer.getvalue().count('\n') > 1:
+            buffer.seek(0)
+            with conn.cursor() as cur:
+                cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
+                            f"TABLE {config.ext['channuoi']['table']} WITH NO DATA;")
+                cur.copy_expert(
+                    "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
+                cur.execute(f"INSERT INTO {config.ext['channuoi']['table']} "
+                            f"SELECT * FROM tmp_table EXCEPT "
+                            f"SELECT * FROM {config.ext['channuoi']['table']};")
+                nline = cur.rowcount
                 conn.commit()
-                count += nrow
-        if count:
-            return f"{basename}: {count:,} dòng được thêm \n"
-        if skip:
+        if nline:
+            return f"{basename}: {nline:,} dòng được thêm \n"
+        else:
             return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
     except TypeError:
         return f"{basename} bị lỗi\n"

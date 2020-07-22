@@ -2,13 +2,15 @@ import os
 import json
 import re
 from psycopg2 import pool
-
+from fuzzywuzzy import fuzz, process
 
 def read_dict():
     my_dict["caytrong"] = {
         "-": "",
         r"\s*\d{4}\s*": "",
         r"khác \(.*": "Khác"}
+    my_dict["dichbenh"] = {}
+    my_dict["channuoi"] = {}
     for file in os.listdir("cfg"):
         (filename, ext) = os.path.splitext(file)
         if ext == ".dict":
@@ -29,10 +31,12 @@ def read_town_list():
                 town_list[il[0]] = dict()
             town_list[il[0]].update({il[2]: [il[1], il[3]]})
 
+
 my_dict = {}
 town_list = {}
 read_dict()
 read_town_list()
+
 with open("cfg/config.json", "r") as f:
     data = json.load(f)
 
