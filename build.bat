@@ -1,2 +1,1 @@
-python -m nuitka --standalone --remove-output --mingw64 --plugin-enable=numpy --show-progress --show-scons main.py
-cp -R cfg main.dist
+.\.venv\scripts\activate && python -m nuitka --standalone --remove-output --mingw64 --plugin-enable=numpy --show-progress --show-scons main.py && cp -R cfg main.dist
