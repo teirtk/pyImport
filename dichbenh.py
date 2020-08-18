@@ -44,7 +44,8 @@ def do_process(file, conn):
             df.loc[:, ["loai", "nhom", "svgh", "gdst"]] = df.loc[:, [
                 "loai", "nhom", "svgh", "gdst"]].applymap(
                     lambda x: x.strip() if isinstance(x, str) else x)
-            df["phanbo"] = df["phanbo"].replace(
+            df.loc[:, ["loai", "nhom", "svgh", "gdst", "phanbo"]] = df.loc[:, [
+                "loai", "nhom", "svgh", "gdst", "phanbo"]].replace(
                 config.my_dict['dichbenh'], regex=True)
             df["nhom"] = df["svgh"].where(
                 df["svgh"].str.startswith("Nhóm cây:")).str.replace("Nhóm cây: ", "")
