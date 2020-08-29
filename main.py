@@ -51,9 +51,10 @@ def close_conn(e=None):
     postgreSQL_pool.putconn(db)
 
 
-@app.route('/')
-def upload_form():
-    html = """
+@app.route('/upload/<modname>', methods=['GET', 'POST'])
+def upload_file(modname):
+    if request.method == 'GET':
+        html = """
     <!DOCTYPE html>
 <html>
 
@@ -80,7 +81,7 @@ def upload_form():
         body,
         html {
             height: 90%;
-            background-color: #4791d2
+            background-color: teal
         }
 
         body {
@@ -165,22 +166,6 @@ def upload_form():
 <body>
     <div class="container">
         <div class="row">
-            <label class="col-sm-4">Dữ liệu nhập</label>
-            <div class="col" id="format">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="format" id="inlineRadio1" value="caytrong"
-                        checked>
-                    <label class="form-check-label" for="inlineRadio1">Cây trồng</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="format" id="inlineRadio2" value="dichbenh">
-                    <label class="form-check-label" for="inlineRadio2">Dịch bệnh</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="format" id="inlineRadio3" value="channuoi">
-                    <label class="form-check-label" for="inlineRadio3">Chăn nuôi</label>
-                </div>
-            </div>
             <div class="col-12">
                 <div class="card card-default rounded mx-auto" id="my-dropzone" class="dropzone">
                     <div class="card-body">
@@ -231,7 +216,7 @@ def upload_form():
 
         let myDropzone = new Dropzone("div#my-dropzone", {
             method: "POST",
-            url: "/upload/",
+            url: document.URL,
             timeout: 180000,
             acceptedFiles: "application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             paramName: "file",
@@ -240,10 +225,9 @@ def upload_form():
             previewsContainer: null,
             parallelUploads: 5,
             forceChunking: true,
-            maxFilesize: 1025, // megabytes
+            maxFilesize: 500, // megabytes
             chunkSize: 5000000, // bytes
             addedfile: function (file) {
-                this.options.url = "/upload/" + document.querySelector("input[name=format]:checked").value;
                 uploadProgress[file.upload.uuid] = 0
             },
             uploadprogress: function (file, progress, bytesSent) {
@@ -277,45 +261,42 @@ def upload_form():
 
 </html>
     """
-    return html
+        return html
+    else:
+        file = request.files['file']
 
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        current_chunk = int(request.form['dzchunkindex'])
 
-@app.route('/upload/<modname>', methods=['POST'])
-def upload_file(modname):
-    file = request.files['file']
+        try:
+            with open(save_path, 'ab') as f:
+                f.seek(int(request.form['dzchunkbyteoffset']))
+                f.write(file.stream.read())
+        except OSError:
+            # log.exception will include the traceback so we can see what's wrong
+            print('Could not write to file')
+            return make_response(("Not sure why,"
+                                  " but we couldn't write the file to disk", 500))
 
-    save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    current_chunk = int(request.form['dzchunkindex'])
+        total_chunks = int(request.form['dztotalchunkcount'])
 
-    try:
-        with open(save_path, 'ab') as f:
-            f.seek(int(request.form['dzchunkbyteoffset']))
-            f.write(file.stream.read())
-    except OSError:
-        # log.exception will include the traceback so we can see what's wrong
-        print('Could not write to file')
-        return make_response(("Not sure why,"
-                              " but we couldn't write the file to disk", 500))
-
-    total_chunks = int(request.form['dztotalchunkcount'])
-
-    if current_chunk + 1 == total_chunks:
-        # This was the last chunk, the file should be complete and the size we expect
-        if os.path.getsize(save_path) != int(request.form['dztotalfilesize']):
-            print(f"File {file.filename} was completed, "
-                  f"but has a size mismatch."
-                  f"Was {os.path.getsize(save_path)} but we"
-                  f" expected {request.form['dztotalfilesize']} ")
+        if current_chunk + 1 == total_chunks:
+            # This was the last chunk, the file should be complete and the size we expect
+            if os.path.getsize(save_path) != int(request.form['dztotalfilesize']):
+                print(f"File {file.filename} was completed, "
+                      f"but has a size mismatch."
+                      f"Was {os.path.getsize(save_path)} but we"
+                      f" expected {request.form['dztotalfilesize']} ")
+                os.unlink(save_path)
+                return make_response(('Size mismatch', 500))
+            result = "Sai định dạng"
+            if modname == "caytrong":
+                result = caytrong.do_process(save_path, get_db())
+            elif modname == "channuoi":
+                result = channuoi.do_process(save_path, get_db())
+            elif modname == "dichbenh":
+                result = dichbenh.do_process(save_path, get_db())
             os.unlink(save_path)
-            return make_response(('Size mismatch', 500))
-        result = "Sai định dạng"
-        if modname == "caytrong":
-            result = caytrong.do_process(save_path, get_db())
-        elif modname == "channuoi":
-            result = channuoi.do_process(save_path, get_db())
-        elif modname == "dichbenh":
-            result = dichbenh.do_process(save_path, get_db())
-        os.unlink(save_path)
         return make_response(result, 200)
 
     return make_response((f"Chunk upload successful {modname}", 200))

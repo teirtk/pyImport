@@ -46,14 +46,14 @@ def get_date(df):
 def fix_addr(s, s1=""):
     if s1:
         result = process.extractOne(
-            s, config.town_list[s1].keys(), score_cutoff=60)
+            s, config.town_list[s1].keys(), score_cutoff=30)
         if result is None:
             return ("", "")
         (sa, _) = result
         return ("", f"{config.town_list[s1][sa][1]} {sa}")
     else:
         result = process.extractOne(
-            s, config.town_list.keys(), score_cutoff=60)
+            s, config.town_list.keys(), score_cutoff=30)
         if result is None:
             return ("", "")
         (sa, _) = result
@@ -104,12 +104,13 @@ def do_process(file, conn):
                 col2 = get_col(df)
                 df = df.reindex(
                     ["Unnamed: 1", col2], axis="columns")
-                df = df.loc[get_first_row(df['Unnamed: 1']):, :]
+                first_row = get_first_row(df['Unnamed: 1'])
+                if first_row < 0:
+                    continue
+                df = df.loc[first_row:, :]
                 df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
-                df['Unnamed: 1'] = df['Unnamed: 1'].apply(str).str.lower().replace(
+                df['Unnamed: 1'] = df['Unnamed: 1'].astype(str).str.lower().replace(
                     config.my_dict['caytrong'], regex=True).str.strip().str.capitalize()
-                with open('data','w+') as f:
-                    f.write(df.to_string())
                 df[col2] = df[col2].astype(str).replace(
                     {r'[A-Za-z]+': '', r'\s+': ''}, regex=True)
                 df['dup'] = df.duplicated(['Unnamed: 1'], keep=False)

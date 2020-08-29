@@ -36,7 +36,10 @@ my_dict = {}
 town_list = {}
 read_dict()
 read_town_list()
-
+s="tx long mỹ"
+result = process.extractOne(
+            s, town_list.keys(), score_cutoff=30)
+print(result)
 with open("cfg/config.json", "r") as f:
     data = json.load(f)
 
