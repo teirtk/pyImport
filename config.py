@@ -22,6 +22,7 @@ def read_dict():
 
 
 def read_town_list():
+    """
     with open("cfg/town.csv", "r", encoding="utf-8") as f:
         for line in f:
             il = line.rstrip("\n").split(",")
@@ -30,16 +31,20 @@ def read_town_list():
             if il[0] not in town_list.keys():
                 town_list[il[0]] = dict()
             town_list[il[0]].update({il[2]: [il[1], il[3]]})
+    """
+    with open("cfg/town.csv", "r", encoding="utf-8") as f:
+        for line in f:
+            il = line.rstrip("\n").split(",")
+            if il[0] not in town_list.keys():
+                town_list[il[0]] = []
+            town_list[il[0]].append(il[1])
 
 
 my_dict = {}
 town_list = {}
 read_dict()
 read_town_list()
-s="tx long mỹ"
-result = process.extractOne(
-            s, town_list.keys(), score_cutoff=30)
-print(result)
+
 with open("cfg/config.json", "r") as f:
     data = json.load(f)
 

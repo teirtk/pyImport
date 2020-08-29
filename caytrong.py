@@ -86,6 +86,47 @@ def do_process(file, conn):
     basename = os.path.basename(file)
     buffer = io.StringIO()
     header = True
+    dfa = []
+    names = []
+    with pd.ExcelFile(file) as xls:
+        for idx, name in enumerate(xls.sheet_names):
+            df = pd.read_excel(xls, sheet_name=name, encoding='utf-8')
+            if not idx:
+                mota2 = name
+                fdate = get_date(df.head(20))
+                if fdate is None:
+                    return f"{basename}: Không lấy được ngày tháng \n"
+                continue
+            col2 = get_col(df)
+            df = df.reindex(
+                ["Unnamed: 1", col2], axis="columns")
+            first_row = get_first_row(df['Unnamed: 1'])
+            if first_row < 0:
+                continue
+            df = df.loc[first_row:, :]
+            dfa.append(df)
+            names.append(name)
+    choices = process.extract(mota2, config.town_list.keys(), limit=10)
+    max = 0
+    max_name = ""
+    for name, ratio in choices:
+        total = 0
+        for subname in names:
+            (_, r) = process.extractOne(subname, config.town_list[name])
+            total += r
+        average = total / len(names)
+        if max < average:
+            max = average
+            max_name = name
+    print(max_name, max)
+    return ""
+
+
+"""
+def do_process(file, conn):
+    basename = os.path.basename(file)
+    buffer = io.StringIO()
+    header = True
     try:
         with pd.ExcelFile(file) as xls:
             for idx, name in enumerate(xls.sheet_names):
@@ -160,3 +201,4 @@ def do_process(file, conn):
         return f"{basename}: Sai định dạng ở sheet {name}\n"
     finally:
         buffer.close()
+"""
