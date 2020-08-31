@@ -44,7 +44,6 @@ my_dict = {}
 town_list = {}
 read_dict()
 read_town_list()
-
 with open("cfg/config.json", "r") as f:
     data = json.load(f)
 
