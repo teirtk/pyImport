@@ -98,11 +98,9 @@ def get_town(mota2, names):
         for j in range(names_len):
             if len(names_arr[j]):
                 continue
-            if id == j:
-                continue
             while tmp[j][0][0] == val:
                 tmp[j].pop(0)
-    return (mota2, names_arr)
+    return mota2, names_arr
 
 
 keyword = {"Lúa", "Mía", "Dừa", "Đậu xanh", "Khóm",
@@ -152,7 +150,7 @@ def do_process(file, conn):
                 df['thuoctinhlb'].apply(str).str.strip() + '":' + df[col2]
             dfa.append(df)
             names.append(name)
-    (mota2, names) = get_town(mota2, names)
+    mota2, names = get_town(mota2, names)
     try:
         for idx, df in enumerate(dfa):
             df.rename(columns={"Unnamed: 1": 'chuyenmuc'}, inplace=True)

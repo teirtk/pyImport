@@ -22,16 +22,6 @@ def read_dict():
 
 
 def read_town_list():
-    """
-    with open("cfg/town.csv", "r", encoding="utf-8") as f:
-        for line in f:
-            il = line.rstrip("\n").split(",")
-            tmp = dict()
-            tmp[il[2]] = [il[1], il[3]]
-            if il[0] not in town_list.keys():
-                town_list[il[0]] = dict()
-            town_list[il[0]].update({il[2]: [il[1], il[3]]})
-    """
     with open("cfg/town.csv", "r", encoding="utf-8") as f:
         for line in f:
             il = line.rstrip("\n").split(",")
