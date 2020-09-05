@@ -2,7 +2,7 @@ import os
 import json
 import re
 from psycopg2 import pool
-from fuzzywuzzy import fuzz, process
+
 
 def read_dict():
     my_dict["caytrong"] = {
