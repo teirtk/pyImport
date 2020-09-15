@@ -87,9 +87,14 @@ def get_town(mota2, names):
     choices = process.extract(mota2, config.town_list.keys(), limit=10)
     mota2 = max([get_ave(name, ratio)
                  for name, ratio in choices], key=operator.itemgetter(1))[0]
+    if mota2 == "Thành phố Vị Thanh":
+        vt = {'1':'I','3':'III','4':'IV','5':'V','7':'VII'}
+        for i in range(names_len):
+            if names[i][-1] in vt.keys():
+                names[i] = f'Phường {vt[names[i][-1]]}'
     names_arr = ["" for i in range(names_len)]
     tmp = [process.extract(name, config.town_list[mota2], limit=20)
-           for name in names]
+           for name in names]    
     for i in range(names_len):
         val, _, id = max(
             [item[0]+(id,) for id, item in enumerate(tmp)], key=operator.itemgetter(1))
@@ -103,7 +108,7 @@ def get_town(mota2, names):
     return mota2, names_arr
 
 
-keyword = {"Lúa", "Mía", "Dừa", "Đậu xanh", "Khóm",
+keyword = {"Cây lúa", "Cây mía", "Cây dừa", "Đậu xanh", "Cây khóm",
            "Cây ăn quả", "Cây rau, màu", "Cây lâu năm khác"}
 
 
@@ -130,6 +135,7 @@ def do_process(file, conn):
                 continue
             df = df.loc[first_row:, :]
             df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
+            df.loc[df['Unnamed: 1'].astype(str).str.contains(' liếp'),'Unnamed: 1']='Đông xuân liếp'
             df['Unnamed: 1'] = df['Unnamed: 1'].astype(str).str.lower().replace(
                 config.my_dict['caytrong'], regex=True).str.strip().str.capitalize()
             df[col2] = df[col2].astype(str).replace(
@@ -154,7 +160,7 @@ def do_process(file, conn):
     try:
         for idx, df in enumerate(dfa):
             df.rename(columns={"Unnamed: 1": 'chuyenmuc'}, inplace=True)
-            df["nhom"] = df["nhom"].apply(str).replace({'Đậu xanh': 'Đậu'})
+            # df["nhom"] = df["nhom"].apply(str).replace({'Đậu xanh': 'Đậu'})
             dfp = df.groupby(["nhom", "chuyenmuc"]).agg(
                 {"thuoctinh": ",".join})
             dfp['thuoctinh'] = "{" + dfp['thuoctinh'] + "}"

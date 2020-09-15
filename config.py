@@ -18,7 +18,7 @@ def read_dict():
                 for line in f:
                     il = line.rstrip("\n").split("|")
                     for k in il[1:]:
-                        my_dict[filename][re.escape(k)] = il[0]
+                        my_dict[filename][re.escape(k.lower())] = il[0]
 
 
 def read_town_list():
@@ -29,7 +29,7 @@ def read_town_list():
                 town_list[il[0]] = []
             town_list[il[0]].append(il[1])
 
-
+version_string="v1.3"
 my_dict = {}
 town_list = {}
 read_dict()

@@ -18,6 +18,7 @@ postgreSQL_pool = config.pgPool
 
 
 def init():
+    print(f'PyImport {config.version_string}')
     conn = postgreSQL_pool.getconn()
     with conn.cursor() as cur:
         for idx in config.ext:
