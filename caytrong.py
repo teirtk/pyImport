@@ -121,6 +121,9 @@ def do_process(file, conn):
     with pd.ExcelFile(file) as xls:
         for idx, name in enumerate(xls.sheet_names):
             df = pd.read_excel(xls, sheet_name=name, encoding='utf-8')
+            if name in config.my_dict["dict_hc"]:
+                name = config.my_dict["dict_hc"][name]
+                print(name)
             if not idx:
                 mota2 = name
                 fdate = get_date(df.head(20))

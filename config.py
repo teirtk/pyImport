@@ -11,6 +11,7 @@ def read_dict():
         r"khác \(.*": "Khác"}
     my_dict["dichbenh"] = {}
     my_dict["channuoi"] = {}
+    my_dict["dict_hc"] = {}
     for file in os.listdir("cfg"):
         (filename, ext) = os.path.splitext(file)
         if ext == ".dict":

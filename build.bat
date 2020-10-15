@@ -1,1 +1,1 @@
-.\.venv\scripts\activate && python -m nuitka --standalone --remove-output --mingw64 --plugin-enable=numpy --show-progress --show-scons main.py && Copy-Item -Path "cfg" -Destination "main.dist\" -Recurse
+.\.venv\scripts\activate && python -m nuitka --standalone --remove-output --mingw64 --plugin-enable=numpy --show-progress --show-scons main.py && Xcopy /E cfg main.dist\
