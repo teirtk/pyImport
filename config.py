@@ -30,7 +30,7 @@ def read_town_list():
                 town_list[il[0]] = []
             town_list[il[0]].append(il[1])
 
-version_string="v1.3"
+version_string="v1.4"
 my_dict = {}
 town_list = {}
 read_dict()
