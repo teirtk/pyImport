@@ -1,10 +1,8 @@
 wheel
 numpy 
-pandas==0.25.3
+pandas-0.25.3-cp38-cp38-win_amd64.whl
 xlrd
 psycopg2-binary
 flask
 waitress
 nuitka
-python-Levenshtein
-fuzzywuzzy

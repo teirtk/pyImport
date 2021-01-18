@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import csv
 from psycopg2 import pool
 
 
@@ -23,18 +24,17 @@ def read_dict():
 
 
 def read_town_list():
-    with open("cfg/town.csv", "r", encoding="utf-8") as f:
+    with open("cfg/ds.csv", "r", encoding="utf-8") as f:
         for line in f:
-            il = line.rstrip("\n").split(",")
-            if il[0] not in town_list.keys():
-                town_list[il[0]] = []
-            town_list[il[0]].append(il[1])
+            town_list = list(csv.reader(f))
 
-version_string="v1.4.1"
+
+version_string = "v1.5.0"
 my_dict = {}
-town_list = {}
+town_list = []
 read_dict()
 read_town_list()
+print(town_list)
 with open("cfg/config.json", "r") as f:
     data = json.load(f)
 

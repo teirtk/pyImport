@@ -22,8 +22,11 @@ def init():
     conn = postgreSQL_pool.getconn()
     with conn.cursor() as cur:
         for idx in config.ext:
+            cur.execute(
+                f"CREATE SCHEMA IF NOT EXISTS "
+                f"{config.ext[idx]['schema']}")
             cur.execute(config.ext[idx]["sql"])
-            conn.commit()
+        conn.commit()
     postgreSQL_pool.putconn(conn)
 
 

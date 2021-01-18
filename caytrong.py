@@ -81,23 +81,23 @@ def get_first_row(ds):
 
 def get_town(mota2, names):
     def get_ave(name, ratio):
-        return (name, (ratio+sum(process.extractOne(subname, config.town_list[name])[
-            1] for subname in names)) / (names_len+1))
+        return (name, (ratio + sum(process.extractOne(subname, config.town_list[name])[
+            1] for subname in names)) / (names_len + 1))
     names_len = len(names)
     choices = process.extract(mota2, config.town_list.keys(), limit=10)
     mota2 = max([get_ave(name, ratio)
                  for name, ratio in choices], key=operator.itemgetter(1))[0]
     if mota2 == "Thành phố Vị Thanh":
-        vt = {'1':'I','3':'III','4':'IV','5':'V','7':'VII'}
+        vt = {'1': 'I', '3': 'III', '4': 'IV', '5': 'V', '7': 'VII'}
         for i in range(names_len):
             if names[i][-1] in vt.keys():
                 names[i] = f'Phường {vt[names[i][-1]]}'
     names_arr = ["" for i in range(names_len)]
     tmp = [process.extract(name, config.town_list[mota2], limit=20)
-           for name in names]    
+           for name in names]
     for i in range(names_len):
         val, _, id = max(
-            [item[0]+(id,) for id, item in enumerate(tmp)], key=operator.itemgetter(1))
+            [item[0] + (id,) for id, item in enumerate(tmp)], key=operator.itemgetter(1))
         names_arr[id] = val
         tmp[id][0] = ("", 0)
         for j in range(names_len):
@@ -121,6 +121,7 @@ def do_process(file, conn):
     with pd.ExcelFile(file) as xls:
         for idx, name in enumerate(xls.sheet_names):
             df = pd.read_excel(xls, sheet_name=name, encoding='utf-8')
+            print(df.head(20).tostring())
             name_strip = name.lower().strip()
             if name_strip in config.my_dict["dict_hc"]:
                 name = config.my_dict["dict_hc"][name_strip]
@@ -138,7 +139,8 @@ def do_process(file, conn):
                 continue
             df = df.loc[first_row:, :]
             df = df.dropna(subset=["Unnamed: 1"]).reset_index(drop=True)
-            df.loc[df['Unnamed: 1'].astype(str).str.contains(' liếp'),'Unnamed: 1']='Đông xuân liếp'
+            df.loc[df['Unnamed: 1'].astype(str).str.contains(
+                ' liếp'), 'Unnamed: 1'] = 'Đông xuân liếp'
             df['Unnamed: 1'] = df['Unnamed: 1'].astype(str).str.lower().replace(
                 config.my_dict['caytrong'], regex=True).str.strip().str.capitalize()
             df[col2] = df[col2].astype(str).replace(
