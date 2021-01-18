@@ -1,6 +1,6 @@
 import os
 import atexit
-import tempfile
+from datetime import datetime
 from flask import Flask, g, request, make_response
 from waitress import serve
 import config
@@ -8,10 +8,9 @@ import caytrong
 import channuoi
 import dichbenh
 
-tmpDir = tempfile.TemporaryDirectory()
 app = Flask(__name__)
 app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = tmpDir.name
+app.config['UPLOAD_FOLDER'] = config.upload_folder
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 postgreSQL_pool = config.pgPool
@@ -19,6 +18,7 @@ postgreSQL_pool = config.pgPool
 
 def init():
     print(f'PyImport {config.version_string}')
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     conn = postgreSQL_pool.getconn()
     with conn.cursor() as cur:
         for idx in config.ext:
@@ -38,7 +38,6 @@ def get_db():
 
 @atexit.register
 def onexit():
-    tmpDir.cleanup()
     if postgreSQL_pool:
         postgreSQL_pool.closeall()
 
@@ -215,7 +214,7 @@ def upload_file(modname):
         function updateProgress() {
             let total = Object.keys(uploadProgress).reduce((tot, key) => tot + uploadProgress[key], 0) / Object.keys(uploadProgress).length
             total = Math.round(total)
-            progressBar.style.width = total + '%'
+            progressBar.style.width = `${total}%`
         }
 
         let myDropzone = new Dropzone("div#my-dropzone", {
@@ -269,7 +268,9 @@ def upload_file(modname):
     else:
         file = request.files['file']
 
-        save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        save_path = os.path.join(
+            app.config['UPLOAD_FOLDER'], f"{datetime.now().strftime('%d%m%Y%H%M%p')}-{file.filename}")
+        print(save_path)
         current_chunk = int(request.form['dzchunkindex'])
 
         try:
@@ -300,7 +301,6 @@ def upload_file(modname):
                 result = channuoi.do_process(save_path, get_db())
             elif modname == "dichbenh":
                 result = dichbenh.do_process(save_path, get_db())
-            os.unlink(save_path)
         return make_response(result, 200)
 
     return make_response((f"Chunk upload successful {modname}", 200))

@@ -2,10 +2,12 @@ import os
 import json
 import re
 import csv
+
 from psycopg2 import pool
 
 
 def read_dict():
+    my_dict = {}
     my_dict["caytrong"] = {
         "-": "",
         r"\s*\d{4}\s*": "",
@@ -21,26 +23,26 @@ def read_dict():
                     il = line.rstrip("\n").split("|")
                     for k in il[1:]:
                         my_dict[filename][re.escape(k.lower())] = il[0]
+    return my_dict
 
 
 def read_town_list():
-    with open("cfg/ds.csv", "r", encoding="utf-8") as f:
-        for line in f:
-            town_list = list(csv.reader(f))
+    town_list = {}
+    with open("cfg/ds.csv", newline='', encoding="utf-8") as f:
+        reader = csv.reader(f)
+        town_list = {rows[5]: rows[:-1] for rows in reader}
+    return town_list
 
 
 version_string = "v1.5.0"
-my_dict = {}
-town_list = []
-read_dict()
-read_town_list()
-print(town_list)
+my_dict = read_dict()
+town_list = read_town_list()
 with open("cfg/config.json", "r") as f:
     data = json.load(f)
 
 db = data['db']
 ext = data['ext']
-
+upload_folder = data['upload_folder']
 pgPool = pool.ThreadedConnectionPool(
     1, 10, database=db["db"], user=db["user"],
     password=db["passwd"], host=db["host"], port=db["port"])

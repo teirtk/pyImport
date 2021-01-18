@@ -9,5 +9,6 @@
     "python.autoComplete.extraPaths": [
     
     ],
-    "python.linting.flake8Enabled": true
+    "python.linting.flake8Enabled": true,
+    "python.pythonPath": ".venv\\Scripts\\python.exe"
 }

@@ -22,5 +22,6 @@
             "schema": "public",
             "sql": "CREATE TABLE IF NOT EXISTS channuoi(hoten CHARACTER VARYING(100), ap CHARACTER VARYING(100),xa CHARACTER VARYING(100),gade NUMERIC,gathit NUMERIC,vitde NUMERIC,vitthit NUMERIC,vitxiem NUMERIC,heonai NUMERIC,heonoc NUMERIC,heothit NUMERIC,trau NUMERIC,bo NUMERIC,cho NUMERIC,meo NUMERIC,ngong NUMERIC,tho NUMERIC,decuu NUMERIC,cut NUMERIC,bocaucudat NUMERIC,huyen CHARACTER VARYING(100),fdate date NOT NULL);"
         }
-    }
+    },
+    "upload_folder":"uploads"
 }
