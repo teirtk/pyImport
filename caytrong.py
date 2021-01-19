@@ -212,9 +212,11 @@ def do_process(file, conn):
             df = df.iloc[7:, :14]
             df = df[df[0].notna()]
             df = df[df[1].notna()]
+            df = df[df[0].str.contains(".", regex=False)]
             df = df.fillna(0)
             df.columns = ["cotID", "cotA", "cotB", "cotC", "cotD", "cotE", "cotF",
                           "cotG", "cotH", "cotI", "mota1", "mota2", "fdate", "fromFile"]
+           
             tid = ws["C1"].value
             df["mota1"] = config.town_list[tid][4]
             df["mota2"] = config.town_list[tid][2]
@@ -231,7 +233,7 @@ def do_process(file, conn):
                 cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
                             f"TABLE {config.ext['caytrong']['table']} WITH NO DATA;")
                 cur.copy_expert(
-                    "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
+                    "COPY tmp_table FROM STDIN WITH CSV HEADER DELIMITER as ','", buffer)
                 cur.execute(f"INSERT INTO {config.ext['caytrong']['table']} "
                             f"SELECT * FROM tmp_table EXCEPT "
                             f"SELECT * FROM {config.ext['caytrong']['table']};")

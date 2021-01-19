@@ -15,7 +15,7 @@
         "caytrong": {
             "table": "caytrong",
             "schema": "caytrong",
-            "sql": "CREATE TABLE IF NOT EXISTS caytrong(cotID CHARACTER VARYING(30),cotA CHARACTER VARYING(30),cotB NUMERIC,cotC NUMERIC,cotD NUMERIC,cotE NUMERIC,cotF NUMERIC,cotG NUMERIC, cotH NUMERIC,colI NUMERIC,mota1 CHARACTER VARYING(30),mota2 CHARACTER VARYING(30),fdate date NOT NULL,fromFile CHARACTER VARYING(30));"
+            "sql": "CREATE TABLE IF NOT EXISTS caytrong(cotID CHARACTER VARYING(30),cotA CHARACTER VARYING(30),cotB NUMERIC,cotC NUMERIC,cotD NUMERIC,cotE NUMERIC,cotF NUMERIC,cotG NUMERIC, cotH NUMERIC,colI NUMERIC,mota1 CHARACTER VARYING(30),mota2 CHARACTER VARYING(30),fdate date NOT NULL,fromFile CHARACTER VARYING(100));"
         },
         "channuoi": {
             "table": "channuoi",

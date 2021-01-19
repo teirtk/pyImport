@@ -26,7 +26,7 @@ def init():
                 f"CREATE SCHEMA IF NOT EXISTS "
                 f"{config.ext[idx]['schema']}")
             cur.execute(config.ext[idx]["sql"])
-        conn.commit()
+            conn.commit()
     postgreSQL_pool.putconn(conn)
 
 
