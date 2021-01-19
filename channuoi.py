@@ -122,12 +122,12 @@ def do_process(file, conn):
             columns = ["hoten", "ap", "xa", "gade", "gathit", "vitde", "vitthit",
                        "vitxiem", "heonai", "heonoc", "heothit"]
             columns.extend(
-                get_col(df.iloc[first_row+1, :].str.replace(r'\s', '').str.lower()))
+                get_col(df.iloc[first_row + 1, :].str.replace(r'\s', '').str.lower()))
             columns.extend(
-                get_col(df.iloc[first_row+2, :].str.replace(r'\s', '').str.lower()))
+                get_col(df.iloc[first_row + 2, :].str.replace(r'\s', '').str.lower()))
             df = df.drop(
                 [df.columns.values[4], df.columns.values[7], df.columns.values[11]], axis=1)
-            df = df.iloc[first_row+3:, 0:len(columns)+1]
+            df = df.iloc[first_row + 3:, 0:len(columns) + 1]
             df = df.dropna(subset=[df.columns.values[1],
                                    df.columns.values[2]]).reset_index(drop=True)
             df = df.iloc[:, 1:]
@@ -143,7 +143,6 @@ def do_process(file, conn):
             df.drop_duplicates().to_csv(buffer, index=False, header=header, line_terminator="\n")
             if header:
                 header = False
-
         if buffer.getvalue().count('\n') > 1:
             buffer.seek(0)
             with conn.cursor() as cur:

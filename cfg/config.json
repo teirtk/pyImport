@@ -14,8 +14,8 @@
         },
         "caytrong": {
             "table": "caytrong",
-            "schema": "public",
-            "sql": "CREATE TABLE IF NOT EXISTS caytrong(cotID CHARACTER VARYING(30),cotA CHARACTER VARYING(30),cotB NUMERIC,cotC NUMERIC,cotD NUMERIC,cotE NUMERIC,cotF NUMERIC,cotG NUMERIC, cotH NUMERIC,colI NUMERIC,fdate date NOT NULL,mota1 CHARACTER VARYING(30),mota2 CHARACTER VARYING(30),fromFile CHARACTER VARYING(30));"
+            "schema": "caytrong",
+            "sql": "CREATE TABLE IF NOT EXISTS caytrong(cotID CHARACTER VARYING(30),cotA CHARACTER VARYING(30),cotB NUMERIC,cotC NUMERIC,cotD NUMERIC,cotE NUMERIC,cotF NUMERIC,cotG NUMERIC, cotH NUMERIC,colI NUMERIC,mota1 CHARACTER VARYING(30),mota2 CHARACTER VARYING(30),fdate date NOT NULL,fromFile CHARACTER VARYING(30));"
         },
         "channuoi": {
             "table": "channuoi",
@@ -23,5 +23,5 @@
             "sql": "CREATE TABLE IF NOT EXISTS channuoi(hoten CHARACTER VARYING(100), ap CHARACTER VARYING(100),xa CHARACTER VARYING(100),gade NUMERIC,gathit NUMERIC,vitde NUMERIC,vitthit NUMERIC,vitxiem NUMERIC,heonai NUMERIC,heonoc NUMERIC,heothit NUMERIC,trau NUMERIC,bo NUMERIC,cho NUMERIC,meo NUMERIC,ngong NUMERIC,tho NUMERIC,decuu NUMERIC,cut NUMERIC,bocaucudat NUMERIC,huyen CHARACTER VARYING(100),fdate date NOT NULL);"
         }
     },
-    "upload_folder":"uploads"
+    "upload_folder": "uploads"
 }

@@ -30,7 +30,9 @@ def read_town_list():
     town_list = {}
     with open("cfg/ds.csv", newline='', encoding="utf-8") as f:
         reader = csv.reader(f)
-        town_list = {rows[5]: rows[:-1] for rows in reader}
+        for rows in reader:
+            if len(rows[5]) > 0:
+                town_list[int(rows[5])] = rows[:-1]
     return town_list
 
 

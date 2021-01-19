@@ -7,3 +7,4 @@ main.dist
 main.build
 *.log
 *.7z
+uploads/
