@@ -175,7 +175,7 @@ def upload_file(modname):
                     <div class="card-body">
                         <span class="oi oi-cloud-upload" aria-hidden="true"></span>
                         <h2>File Uploader</h2>
-                        <h8>Thả vào đây file .xls hoặc .xlsx</h8>
+                        <h8>Thả vào đây file Excel</h8>
                         <div class="progress">
                             <div class="progress-bar bg-info" role="progressbar" id="progress-bar"></div>
                         </div>
@@ -205,6 +205,10 @@ def upload_file(modname):
     <script>
         let uploadProgress = []
         let progressBar = document.getElementById('progress-bar')
+        let dzAccept = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        if (!location.pathname.includes('caytrong')) {
+            dzAccept = `application/vnd.ms-excel,${dzAccept}`
+        }
         function initializeProgress(numFiles) {
             uploadProgress = []
             for (let i = numFiles; i > 0; i--) {
@@ -222,7 +226,7 @@ def upload_file(modname):
             method: "POST",
             url: document.URL,
             timeout: 180000,
-            acceptedFiles: "application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            acceptedFiles: dzAccept,
             paramName: "file",
             clickable: document.getElementById("upload-btn"),
             chunking: true,

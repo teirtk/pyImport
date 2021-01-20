@@ -1,6 +1,5 @@
 import io
 import os
-import operator
 from datetime import timedelta, date
 import pandas as pd
 import numpy as np
