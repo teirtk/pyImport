@@ -1,7 +1,8 @@
 wheel
 numpy 
 pandas-0.25.3-cp38-cp38-win_amd64.whl
-xlrd
+xlrd==1.2.0
+openpyxl
 psycopg2-binary
 flask
 waitress

@@ -25,7 +25,8 @@ def init():
             cur.execute(
                 f"CREATE SCHEMA IF NOT EXISTS "
                 f"{config.ext[idx]['schema']}")
-            cur.execute(config.ext[idx]["sql"])
+            cur.execute(
+                f"CREATE TABLE IF NOT EXISTS {config.ext[idx]['schema']}.{config.ext[idx]['table']}({config.ext[idx]['cols']});")
             conn.commit()
     postgreSQL_pool.putconn(conn)
 
@@ -267,10 +268,8 @@ def upload_file(modname):
         return html
     else:
         file = request.files['file']
-
         save_path = os.path.join(
             app.config['UPLOAD_FOLDER'], f"{datetime.now().strftime('%d%m%Y%H%M%p')}-{file.filename}")
-        print(save_path)
         current_chunk = int(request.form['dzchunkindex'])
 
         try:
@@ -301,7 +300,7 @@ def upload_file(modname):
                 result = channuoi.do_process(save_path, get_db())
             elif modname == "dichbenh":
                 result = dichbenh.do_process(save_path, get_db())
-        return make_response(result, 200)
+            return make_response(result, 200)
 
     return make_response((f"Chunk upload successful {modname}", 200))
 

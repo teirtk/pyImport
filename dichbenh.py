@@ -63,12 +63,12 @@ def do_process(file, conn):
         buffer.seek(0)
         with conn.cursor() as cur:
             cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
-                        f"TABLE {config.ext['dichbenh']['table']} WITH NO DATA;")
+                        f"TABLE {config.ext['dichbenh']['schema']}.{config.ext['dichbenh']['table']} WITH NO DATA;")
             cur.copy_expert(
                 "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
-            cur.execute(f"INSERT INTO {config.ext['dichbenh']['table']} "
+            cur.execute(f"INSERT INTO {config.ext['dichbenh']['schema']}.{config.ext['dichbenh']['table']} "
                         f"SELECT * FROM tmp_table EXCEPT "
-                        f"SELECT * FROM {config.ext['dichbenh']['table']};")
+                        f"SELECT * FROM {config.ext['dichbenh']['schema']}.{config.ext['dichbenh']['table']};")
             nrow = cur.rowcount
             conn.commit()
             if nrow > 0:

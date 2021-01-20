@@ -97,7 +97,7 @@ def do_process(file, conn):
     fdate = None
     huyen = None
     dfa = []
-    header = False
+    header = True
     with pd.ExcelFile(file) as xls:
         for _, name in enumerate(xls.sheet_names):
             if name.startswith("Sheet"):
@@ -147,12 +147,12 @@ def do_process(file, conn):
             buffer.seek(0)
             with conn.cursor() as cur:
                 cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
-                            f"TABLE {config.ext['channuoi']['table']} WITH NO DATA;")
+                            f"TABLE {config.ext['channuoi']['schema']}.{config.ext['channuoi']['table']} WITH NO DATA;")
                 cur.copy_expert(
                     "COPY tmp_table FROM STDIN WITH CSV HEADER", buffer)
-                cur.execute(f"INSERT INTO {config.ext['channuoi']['table']} "
+                cur.execute(f"INSERT INTO {config.ext['channuoi']['schema']}.{config.ext['channuoi']['table']} "
                             f"SELECT * FROM tmp_table EXCEPT "
-                            f"SELECT * FROM {config.ext['channuoi']['table']};")
+                            f"SELECT * FROM {config.ext['channuoi']['schema']}.{config.ext['channuoi']['table']};")
                 nline = cur.rowcount
                 conn.commit()
         if nline:
