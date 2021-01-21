@@ -36,7 +36,7 @@ def read_town_list():
     return town_list
 
 
-version_string = "v1.5.0"
+version_string = "v1.5.1"
 my_dict = read_dict()
 town_list = read_town_list()
 with open("cfg/config.json", "r") as f:
