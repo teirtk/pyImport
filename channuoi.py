@@ -140,6 +140,7 @@ def do_process(file, conn):
                     df[col] = 0
             df["huyen"] = huyen
             df["fdate"] = fdate
+            df["fromFile"] = basename
             df.drop_duplicates().to_csv(buffer, index=False, header=header, line_terminator="\n")
             if header:
                 header = False

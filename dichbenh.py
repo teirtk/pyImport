@@ -57,6 +57,8 @@ def do_process(file, conn):
                            "dtnhiemnhe", "dtnhiemtb", "dtnhiemnang", "dttong", "dtmattrang",
                            "dtsokytruoc", "dtphongtru"]].applymap(lambda x: x.replace(',', '')
                                                                   if isinstance(x, str) else x)
+            df = df.fillna(0)
+            df["fromFile"] = basename
         df.to_csv(buffer, index=False)
         if not buffer.getvalue().count('\n'):
             return f"{basename}: Sai định dạng \n"

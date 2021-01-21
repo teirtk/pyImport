@@ -10,7 +10,7 @@
         "dichbenh": {
             "table": "dichbenh",
             "schema": "public",
-            "cols": "loai CHARACTER VARYING(50),nhom CHARACTER VARYING(50),svgh CHARACTER VARYING(50),gdst CHARACTER VARYING(100),dtnhiemnhe NUMERIC,dtnhiemtb NUMERIC,dtnhiemnang NUMERIC,dttong NUMERIC,dtmattrang NUMERIC,dtsokytruoc NUMERIC,dtphongtru NUMERIC,phanbo CHARACTER VARYING(200),fdate date NOT NULL,tdate date NOT NULL,mdpb1 NUMERIC,mdpb2 NUMERIC,mdcao1 NUMERIC,mdcao2 NUMERIC"
+            "cols": "loai CHARACTER VARYING(50),nhom CHARACTER VARYING(50),svgh CHARACTER VARYING(50),gdst CHARACTER VARYING(100),dtnhiemnhe NUMERIC,dtnhiemtb NUMERIC,dtnhiemnang NUMERIC,dttong NUMERIC,dtmattrang NUMERIC,dtsokytruoc NUMERIC,dtphongtru NUMERIC,phanbo CHARACTER VARYING(200),fdate date NOT NULL,tdate date NOT NULL,mdpb1 NUMERIC,mdpb2 NUMERIC,mdcao1 NUMERIC,mdcao2 NUMERIC,fromFile CHARACTER VARYING(100)"
         },
         "caytrong": {
             "table": "caytrong",
@@ -20,7 +20,7 @@
         "channuoi": {
             "table": "channuoi",
             "schema": "public",
-            "cols": "hoten CHARACTER VARYING(100), ap CHARACTER VARYING(100),xa CHARACTER VARYING(100),gade NUMERIC,gathit NUMERIC,vitde NUMERIC,vitthit NUMERIC,vitxiem NUMERIC,heonai NUMERIC,heonoc NUMERIC,heothit NUMERIC,trau NUMERIC,bo NUMERIC,cho NUMERIC,meo NUMERIC,ngong NUMERIC,tho NUMERIC,decuu NUMERIC,cut NUMERIC,bocaucudat NUMERIC,huyen CHARACTER VARYING(100),fdate date NOT NULL"
+            "cols": "hoten CHARACTER VARYING(100), ap CHARACTER VARYING(100),xa CHARACTER VARYING(100),gade NUMERIC,gathit NUMERIC,vitde NUMERIC,vitthit NUMERIC,vitxiem NUMERIC,heonai NUMERIC,heonoc NUMERIC,heothit NUMERIC,trau NUMERIC,bo NUMERIC,cho NUMERIC,meo NUMERIC,ngong NUMERIC,tho NUMERIC,decuu NUMERIC,cut NUMERIC,bocaucudat NUMERIC,huyen CHARACTER VARYING(100),fdate date NOT NULL,fromFile CHARACTER VARYING(100)"
         }
     },
     "upload_folder": "uploads"
