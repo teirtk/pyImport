@@ -52,16 +52,19 @@ def do_process(file, conn):
             ws = wb[name]
             df = pd.DataFrame(ws.values)
             fdate = get_date(df.head(7))
-            df = df.iloc[7:, :14]
+            df = df.iloc[7:, :]
             df = df[df[0].notna()]
             df = df[df[1].notna()]
             df = df[df[0].str.contains(".", regex=False)]
             df = df.fillna(0)
-            df.columns = ["cotID", "cotA", "cotB", "cotC", "cotD", "cotE", "cotF",
-                          "cotG", "cotH", "cotI", "mota1", "mota2", "fdate", "fromFile"]
+            df.columns = ["cotID", "cotA", "cotB", "cotC", "cotD", "cotE", "cotF", "cotG",
+                          "cotH", "cotI", "mota1", "mota2", "maxa", "mahuyen", "matinh", "fdate"]
             tid = ws["C1"].value
             df["mota1"] = config.town_list[tid][4]
             df["mota2"] = config.town_list[tid][2]
+            df["maxa"] = tid
+            df["mahuyen"] = config.town_list[tid][3]
+            df["matinh"] = config.town_list[tid][1]
             df["fdate"] = fdate
             df["fromFile"] = basename
             df.to_csv(buffer, index=False, header=header,

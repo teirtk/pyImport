@@ -15,7 +15,7 @@
         "caytrong": {
             "table": "caytrong",
             "schema": "caytrong",
-            "cols": "cotID CHARACTER VARYING(50),cotA CHARACTER VARYING(50),cotB NUMERIC,cotC NUMERIC,cotD NUMERIC,cotE NUMERIC,cotF NUMERIC,cotG NUMERIC, cotH NUMERIC,colI CHARACTER VARYING(100),mota1 CHARACTER VARYING(50),mota2 CHARACTER VARYING(50),fdate date NOT NULL,fromFile CHARACTER VARYING(100)"
+            "cols": "cotID CHARACTER VARYING(50),cotA CHARACTER VARYING(50),cotB NUMERIC,cotC NUMERIC,cotD NUMERIC,cotE NUMERIC,cotF NUMERIC,cotG NUMERIC, cotH NUMERIC,colI CHARACTER VARYING(100),mota1 CHARACTER VARYING(50),mota2 CHARACTER VARYING(50),maxa INT,mahuyen INT NOT NULL,matinh INT NOT NULL,fdate date NOT NULL,fromFile CHARACTER VARYING(100)"
         },
         "channuoi": {
             "table": "channuoi",
