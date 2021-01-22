@@ -60,6 +60,8 @@ def do_process(file, conn):
             df.columns = ["cotID", "cotA", "cotB", "cotC", "cotD", "cotE", "cotF", "cotG",
                           "cotH", "cotI", "mota1", "mota2", "maxa", "mahuyen", "matinh", "fdate"]
             tid = ws["C1"].value
+            if not isinstance(tid, int):
+                return f"{basename}: Không lấy được mã xã ở sheet {name}\n"
             df["mota1"] = config.town_list[tid][4]
             df["mota2"] = config.town_list[tid][2]
             df["maxa"] = tid
@@ -84,9 +86,9 @@ def do_process(file, conn):
                 nline = cur.rowcount
                 conn.commit()
             if nline:
-                return f"{basename}: {nline:,} dòng được thêm \n"
+                return f"{basename}: {nline:,} dòng được thêm\n"
             else:
-                return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
+                return f"{basename}: Dữ liệu đã có (bỏ qua)\n"
     except TypeError:
         return f"{basename} bị lỗi\n"
     finally:

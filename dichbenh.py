@@ -61,7 +61,7 @@ def do_process(file, conn):
             df["fromFile"] = basename
         df.to_csv(buffer, index=False)
         if not buffer.getvalue().count('\n'):
-            return f"{basename}: Sai định dạng \n"
+            return f"{basename}: Sai định dạng\n"
         buffer.seek(0)
         with conn.cursor() as cur:
             cur.execute(f"CREATE TEMP TABLE tmp_table ON COMMIT DROP AS "
@@ -74,8 +74,8 @@ def do_process(file, conn):
             nrow = cur.rowcount
             conn.commit()
             if nrow > 0:
-                return f"{basename}: {nrow:,} dòng được thêm \n"
-            return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
+                return f"{basename}: {nrow:,} dòng được thêm\n"
+            return f"{basename}: Dữ liệu đã có (bỏ qua)\n"
     except (TypeError, ValueError):
         return f"{basename}: Sai định dạng\n"
     finally:

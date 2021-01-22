@@ -1,1 +1,1 @@
-.\.venv\scripts\activate && python -m nuitka --standalone --remove-output --mingw64 --plugin-enable=numpy --show-progress --show-scons main.py && xcopy /E cfg main.dist\cfg\ && 7z a pyImport .\main.dist\*
+.venv\scripts\activate && python -m nuitka --standalone --remove-output --mingw64 --plugin-enable=numpy --show-progress --show-scons main.py && xcopy /E cfg main.dist\cfg\ && 7z a pyImport .\main.dist\*

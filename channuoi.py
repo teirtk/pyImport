@@ -109,7 +109,7 @@ def do_process(file, conn):
                 dfa.append(df)
 
     if fdate is None:
-        return f"{basename}: Sai định dạng \n"
+        return f"{basename}: Sai định dạng\n"
     buffer = io.StringIO()
     try:
         for df in dfa:
@@ -157,9 +157,9 @@ def do_process(file, conn):
                 nline = cur.rowcount
                 conn.commit()
         if nline:
-            return f"{basename}: {nline:,} dòng được thêm \n"
+            return f"{basename}: {nline:,} dòng được thêm\n"
         else:
-            return f"{basename}: Dữ liệu đã có (bỏ qua) \n"
+            return f"{basename}: Dữ liệu đã có (bỏ qua)\n"
     except TypeError:
         return f"{basename} bị lỗi\n"
     finally:
